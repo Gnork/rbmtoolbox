@@ -1,5 +1,6 @@
 package berlin.iconn.scanpicture;
 
+import berlin.iconn.rbm.GrowingModifier;
 import berlin.iconn.rbm.RBM;
 import berlin.iconn.rbm.StoppingCondition;
 import berlin.iconn.rbm.WeightsFactory;
@@ -7,16 +8,15 @@ import berlin.iconn.rbm.dataprovider.FilterPictureBatchProvider;
 import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
+import berlin.iconn.rbm.enhancements.WeightsSaver;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
-import berlin.iconn.rbm.GrowingModifier;
-import org.apache.commons.io.FileUtils;
-import org.jblas.FloatMatrix;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import javax.imageio.ImageIO;
+import org.apache.commons.io.FileUtils;
+import org.jblas.FloatMatrix;
 
 /**
  * Created by Moritz on 4/28/2014.
@@ -45,6 +45,7 @@ public class Main {
         new Frame(picture);
 
         enhancer.addEnhancement(new TrainingVisualizer(1,picture));
+        enhancer.addEnhancement(new WeightsSaver(100));
 
         FloatMatrix[] batchSelectionData =  new FloatMatrix[trainingData.length];
         //prepare data for batch selection
