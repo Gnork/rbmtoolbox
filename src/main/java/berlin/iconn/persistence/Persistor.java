@@ -20,10 +20,9 @@ import org.apache.commons.io.FileUtils;
 public class Persistor {
     private final String simpleWeightsFolder = "SimpleWeights";
     
-    private final Date date; 
+    private final Date date = new Date(); 
     
     public Persistor(){
-        date = new Date();
         try {
             mkdir(simpleWeightsFolder);
         } catch (IOException ex) {
@@ -35,8 +34,7 @@ public class Persistor {
         File file = new File(path);
         if(!file.isDirectory()){
                 FileUtils.forceMkdir(file);
-        }
-            
+        }           
     }
     
     public static void saveSimpleWeights(float[][] weights, File file) throws IOException{
@@ -63,9 +61,10 @@ public class Persistor {
         String result = "";
         prefix = prefix.trim();
         extension = extension.trim();
-        prefix = prefix.replaceAll(".", "");
+        prefix = prefix.replaceAll("\\.", "");
         prefix = prefix.replaceAll(" ", "_");
         extension = extension.replaceAll(" ", "_");
+        System.out.println("Prefix: " + prefix);
         if(! prefix.isEmpty()){
             result += prefix + "_";
         }

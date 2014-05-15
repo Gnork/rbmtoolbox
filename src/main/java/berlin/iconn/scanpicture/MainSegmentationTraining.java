@@ -1,5 +1,6 @@
 package berlin.iconn.scanpicture;
 
+import berlin.iconn.rbm.GrowingModifier;
 import berlin.iconn.rbm.RBM;
 import berlin.iconn.rbm.StoppingCondition;
 import berlin.iconn.rbm.WeightsFactory;
@@ -7,21 +8,20 @@ import berlin.iconn.rbm.dataprovider.FilterPictureBatchProvider;
 import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
+import berlin.iconn.rbm.enhancements.WeightsSaver;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
-import berlin.iconn.rbm.GrowingModifier;
-import org.apache.commons.io.FileUtils;
-import org.jblas.FloatMatrix;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import javax.imageio.ImageIO;
+import org.apache.commons.io.FileUtils;
+import org.jblas.FloatMatrix;
 
 /**
  * Created by Moritz on 4/28/2014.
  */
-public class Main {
+public class MainSegmentationTraining {
 
     private static final boolean exportImages = true;
     private static final String exportPath = "export";
@@ -32,7 +32,10 @@ public class Main {
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String picture = "Data/Pictures";
+    private static final String picture = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories";
+    private static final String labels = "Data/SiftFlowDataset/SemanticLabels/labels";
+    private static final String labelNames = "Data/SiftFlowDataset/SemanticLabels/names.mat";
+    
     public static void main(String[] args) {
 
         int rbmEdgeLength = 8;
@@ -45,6 +48,7 @@ public class Main {
         new Frame(picture);
 
         enhancer.addEnhancement(new TrainingVisualizer(1,picture));
+        enhancer.addEnhancement(new WeightsSaver(10000));
 
         FloatMatrix[] batchSelectionData =  new FloatMatrix[trainingData.length];
         //prepare data for batch selection
