@@ -235,4 +235,32 @@ public class DataConverter {
     	
     	return u;
     }
+    
+    public static float[][] dataSetToArray(DataSet[] dataSet) {
+        float[][] result = new float[dataSet.length][];
+        for (int i = 0; i < dataSet.length; ++i) {
+            result[i] = dataSet[i].getData();
+        }
+        return result;
+    }
+    
+    public static float[] pad(float[] data, int dataEdgeLength, int padding) {
+        int newEdgeLength = dataEdgeLength + padding * 2;
+        float[] result = new float[newEdgeLength * newEdgeLength];
+
+        for (int y = 0; y < newEdgeLength; y++) {
+            for (int x = 0; x < newEdgeLength; x++) {
+
+                int pos = y * newEdgeLength + x;
+                if (y < padding || x < padding || y >= dataEdgeLength + padding || x >= dataEdgeLength + padding) {
+                    result[pos] = 0.0f;
+                } else {
+                    int posm = (y - padding) * (newEdgeLength - padding * 2) + x - padding;
+                    result[pos] = data[posm];
+                }
+
+            }
+        }
+        return result;
+    }
 }

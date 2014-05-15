@@ -6,8 +6,9 @@
 
 package berlin.iconn.rbm.enhancements;
 
-import berlin.iconn.persistence.Persistor;
+import berlin.iconn.persistence.InOutOperations;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,12 +19,11 @@ import java.util.logging.Logger;
 public class WeightsSaver implements IRBMTrainingEnhancement{
     
     private final int updateInterval;
-    private final Persistor persistor;
+    private final Date date = new Date();
     
     public WeightsSaver(int updateInterval) {
         super();
         this.updateInterval = updateInterval;
-        this.persistor = new Persistor();
     }
 
     @Override
@@ -34,8 +34,8 @@ public class WeightsSaver implements IRBMTrainingEnhancement{
     @Override
     public void action(RBMInfoPackage info) {
         try {
-            persistor.overwriteSimpleWeights(info.getWeights());
-            System.out.println("Saved Weights");
+            InOutOperations.saveSimpleWeights(info.getWeights(), date);
+            System.out.println("Weights saved!");
         } catch (IOException ex) {
             Logger.getLogger(WeightsSaver.class.getName()).log(Level.SEVERE, null, ex);
         }
