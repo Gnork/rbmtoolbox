@@ -6,8 +6,8 @@
 
 package berlin.iconn.persistence;
 
-import berlin.iconn.scanpicture.DataConverter;
-import berlin.iconn.scanpicture.DataSet;
+import berlin.iconn.rbm.IRBM;
+
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,13 +52,13 @@ public class InOutOperations {
         String path = imageExportFolder + "/" + getDirectoryNameByDate(date, prefix);
         mkdir(path);
         for (int i = 0; i < data.length; i++) {
-            BufferedImage image = DataConverter.pixelDataToImage(data[i], 0.0f, false);
+            BufferedImage image = IRBM.DataConverter.pixelDataToImage(data[i], 0.0f, false);
             File file = new File(path + "/" + i + ".png");
             ImageIO.write(image, "png", file);
         }
     }
     
-    public static DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
+    public static IRBM.DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
 
         final File[] imageFiles = path.listFiles(new FilenameFilter() {
             @Override
@@ -68,15 +68,15 @@ public class InOutOperations {
         });
 
         int size = edgeLength * edgeLength;
-        DataSet[] result = new DataSet[imageFiles.length];
+        IRBM.DataSet[] result = new IRBM.DataSet[imageFiles.length];
 
         for (int i = 0; i < imageFiles.length; i++) {
             float[] imageData;
-            imageData = DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
-            imageData = DataConverter.pad(imageData, edgeLength, padding);
+            imageData = IRBM.DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
+            imageData = IRBM.DataConverter.pad(imageData, edgeLength, padding);
 
             String label = imageFiles[i].getName().split("_")[0];
-            result[i] = new DataSet(imageData, label);
+            result[i] = new IRBM.DataSet(imageData, label);
         }
 
         return result;

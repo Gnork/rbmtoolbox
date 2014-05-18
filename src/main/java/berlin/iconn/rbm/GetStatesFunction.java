@@ -1,5 +1,7 @@
 package berlin.iconn.rbm;
 
+import berlin.iconn.rbm.binarize.IBinarize;
+import berlin.iconn.rbm.logistic.ILogistic;
 import org.jblas.FloatMatrix;
 import org.jblas.MatrixFunctions;
 

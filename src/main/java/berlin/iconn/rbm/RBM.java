@@ -4,6 +4,8 @@ package berlin.iconn.rbm;
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
 import berlin.iconn.rbm.learningRate.ILearningRate;
+import berlin.iconn.rbm.weightmodifier.DefaultModifier;
+import berlin.iconn.rbm.weightmodifier.IWeightsModifier;
 import org.jblas.FloatMatrix;
 import org.jblas.MatrixFunctions;
 
@@ -15,19 +17,19 @@ public class RBM  implements IRBM {
     private FloatMatrix weights;
     private final GetStatesFunction getHiddenFunction;
     private final GetStatesFunction getVisibleFunction;
-    private final ITrainingModifier modifier;
-    public RBM(GetStatesFunction getHiddenFunction, GetStatesFunction getVisibleFunction, FloatMatrix weights, ITrainingModifier modifier) {
+    private final IWeightsModifier modifier;
+    public RBM(GetStatesFunction getHiddenFunction, GetStatesFunction getVisibleFunction, FloatMatrix weights, IWeightsModifier modifier) {
         this.getHiddenFunction = getHiddenFunction;
         this.getVisibleFunction = getVisibleFunction;
         this.weights = weights;
         this.modifier = modifier;
     }
 
-    public RBM(GetStatesFunction statesFunction, FloatMatrix weights, ITrainingModifier modifier) {
+    public RBM(GetStatesFunction statesFunction, FloatMatrix weights, IWeightsModifier modifier) {
         this(statesFunction,statesFunction, weights, modifier);
     }
 
-    public RBM(FloatMatrix weights, ITrainingModifier modifier) {
+    public RBM(FloatMatrix weights, IWeightsModifier modifier) {
         this(new GetStatesFunction(), weights, modifier);
     }
     public RBM(FloatMatrix weights) {

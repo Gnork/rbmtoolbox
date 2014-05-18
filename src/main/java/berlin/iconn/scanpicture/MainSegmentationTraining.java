@@ -1,10 +1,7 @@
 package berlin.iconn.scanpicture;
 
 import berlin.iconn.persistence.InOutOperations;
-import berlin.iconn.rbm.GrowingModifier;
-import berlin.iconn.rbm.RBM;
-import berlin.iconn.rbm.StoppingCondition;
-import berlin.iconn.rbm.WeightsFactory;
+import berlin.iconn.rbm.*;
 import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
@@ -14,6 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import berlin.iconn.rbm.logistic.ILogistic;
+import berlin.iconn.rbm.weightmodifier.GrowingModifier;
 import org.jblas.FloatMatrix;
 
 /**
@@ -37,19 +37,19 @@ public class MainSegmentationTraining {
     public static void main(String[] args) {
 
         int rbmEdgeLength = 8;
-        DataSet[] trainingDataSet;
+        IRBM.DataSet[] trainingDataSet;
         try {
             trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
         } catch (IOException ex) {
             Logger.getLogger(MainSegmentationTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
-        final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
+        final float[][] trainingData = IRBM.DataConverter.dataSetToArray(trainingDataSet);
 
         RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength / 2, 0.01f), new GrowingModifier()));
 
         ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[0]), rbmEdgeLength);
-        new Frame(picture);
+        new ILogistic.Frame(picture);
 
         enhancer.addEnhancement(new TrainingVisualizer(1,picture));
         enhancer.addEnhancement(new WeightsSaver(10000));
