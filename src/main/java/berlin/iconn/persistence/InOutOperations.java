@@ -6,6 +6,8 @@
 
 package berlin.iconn.persistence;
 
+import berlin.iconn.rbm.DataConverter;
+import berlin.iconn.rbm.DataSet;
 import berlin.iconn.rbm.IRBM;
 
 import java.awt.image.BufferedImage;
@@ -52,13 +54,13 @@ public class InOutOperations {
         String path = imageExportFolder + "/" + getDirectoryNameByDate(date, prefix);
         mkdir(path);
         for (int i = 0; i < data.length; i++) {
-            BufferedImage image = IRBM.DataConverter.pixelDataToImage(data[i], 0.0f, false);
+            BufferedImage image = DataConverter.pixelDataToImage(data[i], 0.0f, false);
             File file = new File(path + "/" + i + ".png");
             ImageIO.write(image, "png", file);
         }
     }
     
-    public static IRBM.DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
+    public static DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
 
         final File[] imageFiles = path.listFiles(new FilenameFilter() {
             @Override
@@ -68,15 +70,15 @@ public class InOutOperations {
         });
 
         int size = edgeLength * edgeLength;
-        IRBM.DataSet[] result = new IRBM.DataSet[imageFiles.length];
+        DataSet[] result = new DataSet[imageFiles.length];
 
         for (int i = 0; i < imageFiles.length; i++) {
             float[] imageData;
-            imageData = IRBM.DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
-            imageData = IRBM.DataConverter.pad(imageData, edgeLength, padding);
+            imageData = DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
+            imageData = DataConverter.pad(imageData, edgeLength, padding);
 
             String label = imageFiles[i].getName().split("_")[0];
-            result[i] = new IRBM.DataSet(imageData, label);
+            result[i] = new DataSet(imageData, label);
         }
 
         return result;

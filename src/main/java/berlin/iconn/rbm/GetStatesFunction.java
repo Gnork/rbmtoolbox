@@ -37,7 +37,7 @@ public class GetStatesFunction {
 
     public FloatMatrix get(FloatMatrix data, FloatMatrix weights) {
         FloatMatrix mData = new FloatMatrix(data.getRows(), weights.getColumns());
-        ForkBlas.pmmuli(data,weights,mData);
+        ForkBlas.pmmuli(data, weights, mData);
         return binarize.binarize(logistic.apply(mData));
     }
 }
