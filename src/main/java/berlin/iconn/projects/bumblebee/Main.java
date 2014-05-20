@@ -7,6 +7,7 @@ import berlin.iconn.rbm.dataprovider.BatchTrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
+import berlin.iconn.rbm.enhancements.visualizations.ErrorDataVisualization;
 import berlin.iconn.rbm.enhancements.visualizations.FeatureDataVisualization;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
 import org.jblas.FloatMatrix;
@@ -76,10 +77,18 @@ public class Main {
                     RBM rbm = new RBM(weights);
                     RBMEnhancer enhancer = new RBMEnhancer(rbm);
 
-                    FeatureDataVisualization visualization = new FeatureDataVisualization(4, 20, edgeLength / 4, part);
-                    new Frame(visualization);
+                    // view features
+                    FeatureDataVisualization featureDataVisualization = new FeatureDataVisualization(4, 20, edgeLength / 4, part);
+                    new Frame(featureDataVisualization);
+                    enhancer.addEnhancement(new TrainingVisualizer(1, featureDataVisualization));
 
-                    enhancer.addEnhancement(new TrainingVisualizer(1, visualization));
+
+                    // view error
+                    ErrorDataVisualization errorDataVisualization = new ErrorDataVisualization();
+                    new Frame(errorDataVisualization);
+                    enhancer.addEnhancement(new TrainingVisualizer(1, errorDataVisualization));
+
+
                     enhancer.train(data, stoppingCondition, learningRate);
                     return rbm;
                 });
