@@ -6,8 +6,10 @@
 
 package berlin.iconn.persistence;
 
-import berlin.iconn.scanpicture.DataConverter;
-import berlin.iconn.scanpicture.DataSet;
+import berlin.iconn.rbm.DataConverter;
+import berlin.iconn.rbm.DataSet;
+import berlin.iconn.rbm.IRBM;
+
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;

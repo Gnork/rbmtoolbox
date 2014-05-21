@@ -3,6 +3,9 @@ package berlin.iconn.rbm;
 
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.learningRate.ILearningRate;
+import berlin.iconn.rbm.logistic.ILogistic;
+
+import java.awt.image.BufferedImage;
 
 public interface IRBM {
 
@@ -12,5 +15,7 @@ public interface IRBM {
     public float[][] getVisible(float[][] data);
 
     public float[][] getWeights();
+
+
 
 }
