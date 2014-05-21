@@ -14,22 +14,25 @@ import org.jblas.ranges.IntervalRange;
  *
  * @author christoph
  */
-public class SegmentationRandomBatchProvider extends ATrainingDataProvider{
+public final class SegmentationRandomBatchProvider extends ATrainingDataProvider{
     
     private final Random random = new Random();
-    private final FloatMatrix[] images;
+    private final float[][] images;
     private final int[][] labels;
-    private final String[] labelNames;
-    private final int batchXOffset, batchYOffset, batchCount;
+    private final String[] classes;
+    private final int edgeLength, batchXOffset, batchYOffset, batchCount;
+    private final boolean isRGB;
 
-    public SegmentationRandomBatchProvider(FloatMatrix[] images, int[][] labels, String[] labelNames, int batchXOffset, int batchYOffset, int batchCount) {
+    public SegmentationRandomBatchProvider(float[][] images, int edgeLength, int[][] labels, String[] classes, int batchXOffset, int batchYOffset, int batchCount, boolean isRGB) {
         super(new float[][]{{1}});
         this.images = images;
         this.labels = labels;
-        this.labelNames = labelNames;
+        this.classes = classes;
         this.batchXOffset = batchXOffset;
         this.batchYOffset = batchYOffset;
         this.batchCount = batchCount;
+        this.isRGB = isRGB;
+        this.edgeLength = edgeLength;
         changeDataAtTraining();
     }
 
@@ -53,28 +56,49 @@ public class SegmentationRandomBatchProvider extends ATrainingDataProvider{
         float[][] result = new float[batchCount][];
         for (int i = 0; i < batchCount; i++) {
             int indexImage = random.nextInt(images.length);
-            FloatMatrix image = images[indexImage];
-            int indexRow = random.nextInt(image.getRows() - batchHeight) + batchYOffset;
-            int indexColumn = random.nextInt(image.getColumns() - batchWidth) + batchXOffset;
-            float[] newData = image.get(new IntervalRange(indexRow - batchYOffset, indexRow + batchYOffset),
-                    new IntervalRange(indexColumn - batchXOffset, indexColumn + batchXOffset)).toArray();
-            int label = labels[indexImage][indexColumn + indexRow * image.getColumns()];
-            float[] newLabels = new float[labelNames.length];
+            int indexRow = random.nextInt(edgeLength - batchHeight);
+            int indexColumn = random.nextInt(edgeLength - batchWidth);
+            float[] newData;
+            if(isRGB){
+                newData = new float[batchWidth * batchHeight * 3];
+                for(int j = 0; j < batchHeight; ++j){
+                    for(int k = 0; k < batchWidth; ++k){
+                        int batchPos = batchWidth * 3 * j + k * 3;
+                        int imagePos = (indexRow + j) * edgeLength * 3 + (indexColumn + k) * 3;
+                        newData[batchPos] = images[indexImage][imagePos];
+                        newData[batchPos+1] = images[indexImage][imagePos+1];
+                        newData[batchPos+2] = images[indexImage][imagePos+2];
+                    }
+                }
+                
+            }else{
+                newData = new float[batchWidth * batchHeight];
+                for(int j = 0; j < batchHeight; ++j){
+                    for(int k = 0; k < batchWidth; ++k){
+                        int batchPos = batchWidth * j + k;
+                        int imagePos = (indexRow + j) * edgeLength + (indexColumn + k);
+                        newData[batchPos] = images[indexImage][imagePos];
+                    }
+                }
+            }
+            int label = labels[indexImage][(indexColumn + batchXOffset) + (indexRow + batchYOffset) * edgeLength];
+            float[] newLabels = new float[classes.length];
             newLabels[label] = 1f;
             result[i] = concatArrays(newLabels, newData);
         }
         FloatMatrix newBatches = new FloatMatrix(result);
         setData(newBatches);
+        setMeanVector(FloatMatrix.zeros(batchCount, 1));
     }
 
     @Override
     public FloatMatrix getMeanVectorForTraining() {
-        return FloatMatrix.zeros(batchCount, 1);
+        return getMeanVector();
     }
     
     private float[] concatArrays(float[] ... arrays){
         int size = 0, count = 0;
-        for(float[] array : arrays) size += array.length;
+        for(float[] a : arrays) size += a.length;
         float[] r = new float[size];
         for(float[] a : arrays) for(int i = 0; i < a.length; ++i, ++count) r[count] = a[i];
         return r;
