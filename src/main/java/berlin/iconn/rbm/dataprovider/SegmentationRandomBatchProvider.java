@@ -14,15 +14,16 @@ import org.jblas.ranges.IntervalRange;
  *
  * @author christoph
  */
-public class SegmentationRandomBatchProvider extends ATrainingDataProvider{
+public final class SegmentationRandomBatchProvider extends ATrainingDataProvider{
     
     private final Random random = new Random();
-    private final FloatMatrix[] images;
+    private final float[][] images;
     private final int[][] labels;
     private final String[] classes;
-    private final int batchXOffset, batchYOffset, batchCount;
+    private final int edgeLength, batchXOffset, batchYOffset, batchCount;
+    private final boolean isRGB;
 
-    public SegmentationRandomBatchProvider(FloatMatrix[] images, int[][] labels, String[] classes, int batchXOffset, int batchYOffset, int batchCount) {
+    public SegmentationRandomBatchProvider(float[][] images, int edgeLength, int[][] labels, String[] classes, int batchXOffset, int batchYOffset, int batchCount, boolean isRGB) {
         super(new float[][]{{1}});
         this.images = images;
         this.labels = labels;
@@ -30,6 +31,8 @@ public class SegmentationRandomBatchProvider extends ATrainingDataProvider{
         this.batchXOffset = batchXOffset;
         this.batchYOffset = batchYOffset;
         this.batchCount = batchCount;
+        this.isRGB = isRGB;
+        this.edgeLength = edgeLength;
         changeDataAtTraining();
     }
 
@@ -53,12 +56,32 @@ public class SegmentationRandomBatchProvider extends ATrainingDataProvider{
         float[][] result = new float[batchCount][];
         for (int i = 0; i < batchCount; i++) {
             int indexImage = random.nextInt(images.length);
-            FloatMatrix image = images[indexImage];
-            int indexRow = random.nextInt(image.getRows() - batchHeight);
-            int indexColumn = random.nextInt(image.getColumns() - batchWidth);
-            float[] newData = image.get(new IntervalRange(indexRow, indexRow + batchHeight),
-                    new IntervalRange(indexColumn, indexColumn + batchWidth)).toArray();
-            int label = labels[indexImage][(indexColumn + batchXOffset) + (indexRow + batchYOffset) * image.getColumns()];
+            int indexRow = random.nextInt(edgeLength - batchHeight);
+            int indexColumn = random.nextInt(edgeLength - batchWidth);
+            float[] newData;
+            if(isRGB){
+                newData = new float[batchWidth * batchHeight * 3];
+                for(int j = 0; j < batchHeight; ++j){
+                    for(int k = 0; k < batchWidth; ++k){
+                        int batchPos = batchWidth * 3 * j + k * 3;
+                        int imagePos = (indexRow + j) * edgeLength * 3 + (indexColumn + k) * 3;
+                        newData[batchPos] = images[indexImage][imagePos];
+                        newData[batchPos+1] = images[indexImage][imagePos+1];
+                        newData[batchPos+2] = images[indexImage][imagePos+2];
+                    }
+                }
+                
+            }else{
+                newData = new float[batchWidth * batchHeight];
+                for(int j = 0; j < batchHeight; ++j){
+                    for(int k = 0; k < batchWidth; ++k){
+                        int batchPos = batchWidth * j + k;
+                        int imagePos = (indexRow + j) * edgeLength + (indexColumn + k);
+                        newData[batchPos] = images[indexImage][imagePos];
+                    }
+                }
+            }
+            int label = labels[indexImage][(indexColumn + batchXOffset) + (indexRow + batchYOffset) * edgeLength];
             float[] newLabels = new float[classes.length];
             newLabels[label] = 1f;
             result[i] = concatArrays(newLabels, newData);

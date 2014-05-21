@@ -24,7 +24,7 @@ public class MainTraining {
     private static final int edgeLength = 256;
     private static final int batchOffset = 2;
     private static final int padding = 0;
-    private static final boolean isRGB = false;
+    private static final boolean isRGB = true;
     private static final boolean binarize = false;
     private static final boolean invert = false;
     private static final float minData = 0.0f;
@@ -50,25 +50,27 @@ public class MainTraining {
             Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
-        
         final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
         
+        if(labels.length != trainingData.length){
+            System.err.println("number of pics and labels does not match");
+            return;
+        }
+        
         int batchSize = 2 * batchOffset + 1;
-        int inputSize = (batchSize * batchSize) + classes.length;
+        int inputSize = (batchSize * batchSize);
+        if(isRGB) inputSize *= 3;
+        inputSize += classes.length;
+        
+        System.out.println("input size: " + inputSize);
 
         RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(inputSize, inputSize / 2, 0.01f)));
 
         enhancer.addEnhancement(new WeightsSaver(10000));
-
-        FloatMatrix[] batchSelectionData =  new FloatMatrix[trainingData.length];
-        //prepare data for batch selection
-        for (int i = 0; i < trainingData.length; i++) {
-            batchSelectionData[i] = new FloatMatrix(edgeLength, edgeLength, trainingData[i]);
-        }
         
         System.out.println("Start training");
 
-        enhancer.train(new SegmentationRandomBatchProvider( batchSelectionData, labels, classes, batchOffset, batchOffset, 100),
+        enhancer.train(new SegmentationRandomBatchProvider( trainingData, edgeLength, labels, classes, batchOffset, batchOffset, 100, isRGB),
                 new StoppingCondition(1000000),
                 new ConstantLearningRate(0.2f));
     }

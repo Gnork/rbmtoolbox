@@ -1,7 +1,5 @@
 package berlin.iconn.rbm;
 
-import berlin.iconn.rbm.logistic.ILogistic;
-
 import java.awt.image.BufferedImage;
 
 /**

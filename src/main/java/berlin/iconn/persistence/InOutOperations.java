@@ -75,7 +75,8 @@ public class InOutOperations {
         for (int i = 0; i < imageFiles.length; i++) {
             float[] imageData;
             imageData = DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
-            imageData = DataConverter.pad(imageData, edgeLength, padding);
+            // Pad does not work with RGB images
+            //imageData = DataConverter.pad(imageData, edgeLength, padding);
 
             String label = imageFiles[i].getName().split("_")[0];
             result[i] = new DataSet(imageData, label);
@@ -87,22 +88,28 @@ public class InOutOperations {
     public static int[][] loadSiftFlowLabels(File path) throws FileNotFoundException, IOException{
         final File[] labelsFiles = path.listFiles((File dir, String name) -> (name.endsWith(".mat")));
         
-        int[][] result = new int[labelsFiles.length][256 * 256];
+        int[][] result = new int[labelsFiles.length][];
         
         for(int i = 0; i < labelsFiles.length; ++i){
-            try (BufferedReader br = new BufferedReader(new FileReader(labelsFiles[i]))) {
-                for(int j = 0; j < 5; ++j){
-                    br.readLine();
+            result[i] = loadSiftFlowLabel(labelsFiles[i]);
+        }
+        return result;
+    }
+    
+    public static int[] loadSiftFlowLabel(File file) throws FileNotFoundException, IOException{
+        int[] result = new int[256 * 256];
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            for(int j = 0; j < 5; ++j){
+                br.readLine();
+            }
+            String line;
+            int lineCount = 0;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if(! line.equals("")){
+                    result[lineCount] = new Integer(line);
                 }
-                String line;
-                int lineCount = 0;
-                while ((line = br.readLine()) != null) {
-                    line = line.trim();
-                    if(! line.equals("")){
-                        result[i][lineCount] = new Integer(line);
-                    }
-                    ++lineCount;
-                }
+                ++lineCount;
             }
         }
         return result;
