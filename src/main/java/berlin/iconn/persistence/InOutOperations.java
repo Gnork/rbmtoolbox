@@ -150,7 +150,6 @@ public class InOutOperations {
         prefix = prefix.trim();
         prefix = prefix.replaceAll("\\.", "");
         prefix = prefix.replaceAll(" ", "_");
-        System.out.println("Prefix: " + prefix);
         if(! prefix.isEmpty()){
             result += prefix + "_";
         }
