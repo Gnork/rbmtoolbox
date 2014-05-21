@@ -61,10 +61,10 @@ public class ErrorDataVisualization extends JComponent implements IVisualizeObse
 
         if (info != null) {
 
-            g.setColor(Color.blue);
+            g.setColor(new Color(0, 143, 255));
             float error = info.getError() * 255;
-            g.drawString("Error: " + error, 0, 20);
-            g.drawString("Epochs: " + info.getEpochs(), 0, 40);
+            g.drawString("Error: " + error, 0, 10);
+            g.drawString("Epochs: " + info.getEpochs(), 100, 10);
 
             graphData.add(new GraphData(error, info.getEpochs()));
 
