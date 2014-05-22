@@ -34,7 +34,7 @@ public class MainSegmentation {
     private static final String imageFile = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
     private static final String labelFile = "Data/SiftFlowDataset_small/SemanticLabels/labels/highway_urb713.mat";
     private static final String siftFlowClassesPath = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
-    private static final String weightsFile = "/home/christoph/git/rbmtoolbox/Output/SimpleWeights/weights_21_05_2014_14_36_29.dat";
+    private static final String weightsFile = "Output/SimpleWeights/weights_22_05_2014_00_48_02.dat";
     
     public static void main(String[] args) {
         float[][] weights;
@@ -51,7 +51,8 @@ public class MainSegmentation {
             return;
         }
         RBM rbm = new RBM(new FloatMatrix(weights));
-        InteractiveVisualization vis = new InteractiveVisualization(rbm, image, classes, minData, isRGB);
+        InteractiveVisualization vis = new InteractiveVisualization(rbm, image, classes, minData, isRGB, batchOffset);
+        
         new Frame(vis);
     }
 }

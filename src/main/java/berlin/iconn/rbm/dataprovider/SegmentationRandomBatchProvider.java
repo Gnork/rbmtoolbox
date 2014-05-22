@@ -96,7 +96,7 @@ public final class SegmentationRandomBatchProvider extends ATrainingDataProvider
         return getMeanVector();
     }
     
-    private float[] concatArrays(float[] ... arrays){
+    public static float[] concatArrays(float[] ... arrays){
         int size = 0, count = 0;
         for(float[] a : arrays) size += a.length;
         float[] r = new float[size];
