@@ -95,7 +95,6 @@ public class InteractiveVisualization extends JComponent implements MouseMotionL
         
         float[] classArray = new float[this.classes.length];
         float[] resultArray =  SegmentationRandomBatchProvider.concatArrays(classArray, batch);
-        System.out.println("result array length" + resultArray.length);
           
         float[][] image2D = new float[1][resultArray.length];
         image2D[0] = resultArray;
@@ -103,12 +102,17 @@ public class InteractiveVisualization extends JComponent implements MouseMotionL
         float[][] hiddenNodes = rbm.getHidden(image2D);
         float[][] labeledImage = rbm.getVisible(hiddenNodes);
         
+        String maxClass = "";
+        float maxValue = 0.0f;
+        
         for(int c = 0; c < classes.length; c++) {
-            if(labeledImage[0][c] > 0.1) {
-                System.out.println(this.classes[c] + ": " + labeledImage[0][c]);
+            if(labeledImage[0][c] > maxValue) {
+                maxValue = labeledImage[0][c];
+                maxClass = classes[c];
             }
         }
 
+        System.out.println(maxClass + " " + maxValue);
     }
     
     
