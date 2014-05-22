@@ -32,12 +32,14 @@ public class MainTraining {
     private static final String images = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories";
     private static final String siftFlowLabels = "Data/SiftFlowDataset_small/SemanticLabels/labels";
     private static final String siftFlowClasses = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
+    private static final String weightsFile = "Output/SimpleWeights/weights_22_05_2014_01_02_32.dat";
     
     public static void main(String[] args) {
 
         DataSet[] trainingDataSet;
         final String[] classes;
         final int[][] labels;
+        float[][] weights;
         
         try {
             trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
@@ -46,10 +48,12 @@ public class MainTraining {
             System.out.println("Labels loaded");
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClasses));
             System.out.println("Classes loaded");
-        } catch (IOException ex) {
+            weights = InOutOperations.loadSimpleWeights(new File(weightsFile));
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
+        
         final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
         
         if(labels.length != trainingData.length){
@@ -63,8 +67,10 @@ public class MainTraining {
         inputSize += classes.length;
         
         System.out.println("input size: " + inputSize);
-
-        RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(inputSize, inputSize / 2, 0.01f)));
+        
+        FloatMatrix rbmWeights = new FloatMatrix(weights);
+        // FloatMatrix rbmWeights = new FloatMatrix(WeightsFactory.randomGaussianWeightsWithBias(inputSize, inputSize / 2, 0.01f));
+        RBMEnhancer enhancer = new RBMEnhancer(new RBM(rbmWeights));
 
         enhancer.addEnhancement(new WeightsSaver(10000));
         
