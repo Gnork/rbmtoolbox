@@ -20,6 +20,7 @@ public class ErrorDataVisualization extends JComponent implements IVisualizeObse
 
     private final double margin = 20;
 
+    private final Color blue = new Color(0, 143, 255);
     private class GraphData {
         public float error, epoch;
 
@@ -60,13 +61,13 @@ public class ErrorDataVisualization extends JComponent implements IVisualizeObse
 
         if (info != null) {
 
-            int margin = 20;
+            int margin = 40;
 
 
-            g.setColor(new Color(0, 143, 255));
+            g.setColor(blue);
             float error = info.getError() * 255;
-            g.drawString("Error: " + error, margin, 10);
-            g.drawString("Epochs: " + info.getEpochs(), margin+100, 10);
+            g.drawString("Error: " + error, margin, 15);
+            g.drawString("Epochs: " + info.getEpochs(), margin+100, 15);
 
             graphData.add(new GraphData(error, info.getEpochs()));
 
@@ -75,35 +76,36 @@ public class ErrorDataVisualization extends JComponent implements IVisualizeObse
 
 
             double lw = 15;
-            int wordspaceX = 50;
+            int wordspaceX = 30;
+            int wordspaceY = 15;
             double gOrigXY = margin;
-            double newH = height - 2 * margin;
+            double newH = height-wordspaceY - 2 * margin;
             double newW = width - 2 * margin;
             double tmpMax = Math.ceil(max);
-            double step = newH / tmpMax;
+            double step = (newH) / tmpMax;
             double fontH = 10;
-            g.setFont(new Font("TimesRoman", Font.PLAIN, (int) fontH));
 
+            // draw background lines
+            g.setFont(new Font("TimesRoman", Font.PLAIN, (int) fontH));
             g.setColor(new Color(128, 128, 128));
             for (int i = (int) tmpMax; i >= 0; i--) {
                 double tmpY = gOrigXY + step * i;
 
                 g.drawString("" + (tmpMax - (i)), (int) gOrigXY, (int) (fontH / 2 + gOrigXY + (newH) * (i) / tmpMax));
-                //g.drawString("Epochs: " + graphData.get(i).error, 20, (int) y1);
 
                 g.draw(new Line2D.Double(gOrigXY + wordspaceX, tmpY, gOrigXY + newW, tmpY));
             }
+            g.drawString("Epochs: " + info.getEpochs(), (int) (gOrigXY+newW-80), (int) (height - (margin  )));
 
-
-            g.setColor(new Color(0, 143, 255));
+            double tmpWidth = newW - wordspaceX;
+            // draw error graph
+            g.setColor(blue);
             for (int i = 0; i < graphData.size() - 1; i++) {
-
 
                 double y1 = gOrigXY + newH - step * graphData.get(i).error;
                 double y2 = gOrigXY + newH - step * graphData.get(i + 1).error;
 
-
-                //g.drawString("Epochs: " + graphData.get(i).error, 20, (int) y1);
+                lw = tmpWidth / graphData.size();
                 g.draw(new Line2D.Double(gOrigXY + wordspaceX + (lw * i), y1, gOrigXY + wordspaceX + (lw * (i + 1)), y2));
             }
         }
