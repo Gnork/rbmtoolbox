@@ -19,11 +19,18 @@ import java.util.logging.Logger;
 public class WeightsSaver implements IRBMTrainingEnhancement{
     
     private final int updateInterval;
-    private final Date date = new Date();
+    private final Date date;
+    private final String suffix;
     
-    public WeightsSaver(int updateInterval) {
+    public WeightsSaver(int updateInterval) {      
+        this(new Date(), updateInterval, "weights");
+    }
+    
+    public WeightsSaver(Date date, int updateInterval, String suffix){
         super();
+        this.date = date;
         this.updateInterval = updateInterval;
+        this.suffix = suffix;
     }
 
     @Override
@@ -34,8 +41,8 @@ public class WeightsSaver implements IRBMTrainingEnhancement{
     @Override
     public void action(RBMInfoPackage info) {
         try {
-            InOutOperations.saveSimpleWeights(info.getWeights(), date);
-            System.out.println("Weights saved!");
+            InOutOperations.saveSimpleWeights(info.getWeights(), date, suffix);
+            //System.out.println("Weights saved!");
         } catch (IOException ex) {
             Logger.getLogger(WeightsSaver.class.getName()).log(Level.SEVERE, null, ex);
         }

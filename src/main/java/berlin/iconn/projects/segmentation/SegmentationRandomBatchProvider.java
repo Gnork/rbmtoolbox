@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.rbm.dataprovider;
+package berlin.iconn.projects.segmentation;
 
+import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import java.util.Random;
 import org.jblas.FloatMatrix;
 import org.jblas.ranges.IntervalRange;
