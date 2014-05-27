@@ -1,6 +1,7 @@
 package berlin.iconn.rbm;
 
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
+import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
 import berlin.iconn.rbm.learningRate.ILearningRate;
 import org.jblas.FloatMatrix;
 
@@ -30,18 +31,48 @@ public class NativeRBM implements IRBM {
             float error = 1.0f;
             while(stop.isNotDone()) {
                 learningRate.changeRate(error);
+                setNativeLearningRate(learningRate.getRate());
+
                 if(binarize) {
                     trainNativeBinarizedWithError();
                 } else {
                     trainNativeWithError();
                 }
                 dataProvider.changeDataAtTraining();
+
+                data = dataProvider.getDataWithBiasForTraining();
+                mean = dataProvider.getMeanVector().data;
+                setNativeData(data.data, data.rows, data.columns, mean);
+
                 error = getNativeError();
                 stop.update(error);
             }
         }
 
+        weights = new FloatMatrix(data.columns, weights.columns,getNativeWeights());
+        deleteNativeRBM();
 
+    }
+    
+    public void fastTraining(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate)
+    {
+        FloatMatrix data = dataProvider.getDataWithBiasForTraining();
+        float[] mean = dataProvider.getMeanVector().data;
+        createNativeRBM(
+                weights.data, weights.getColumns(),
+                data.data, data.rows, data.columns, mean,
+                learningRate.getRate(), Runtime.getRuntime().availableProcessors());
+        if(binarize) {
+            for (int i = 0; i < epochs; i++) {
+                setNativeLearningRate(learningRate.getRate());
+                trainNativeBinarizedWithoutError();
+            }
+        } else {
+            trainNativeWithoutError();
+        }
+
+        weights = new FloatMatrix(data.columns, weights.columns,getNativeWeights());
+        deleteNativeRBM();
     }
 
     @Override
@@ -77,8 +108,9 @@ public class NativeRBM implements IRBM {
     private native void trainNativeWithError();
     private native void trainNativeBinarizedWithoutError();
     private native void trainNativeBinarizedWithError();
-    private native void setNativeWeights(float[] weights, int weightsCols);
     private native float[] getNativeWeights();
     private native float getNativeError();
+    private native void setNativeWeights(float[] weights, int weightsCols);
     private native void setNativeData(float[] data, int dataRows, int dataCols, float[] mean);
+    private native void setNativeLearningRate(float learningRate);
 }
