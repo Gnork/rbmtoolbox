@@ -34,6 +34,7 @@ public final class SegmentationStackRandomBatchGenerator{
         this.batchCount = batchCount;
         this.isRGB = isRGB;
         this.edgeLength = edgeLength;
+        changeDataAtTraining();
     }   
 
     public void changeDataAtTraining() {
