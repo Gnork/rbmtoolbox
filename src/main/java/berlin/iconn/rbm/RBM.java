@@ -43,6 +43,7 @@ public class RBM  implements IRBM {
 
         // first associations
         FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
+
         final FloatMatrix positiveAssociations = new FloatMatrix(dataWithBiasTrans.rows, hidden.columns);
         ForkBlas.pmmuli(dataWithBiasTrans, hidden, positiveAssociations);
 

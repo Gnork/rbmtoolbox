@@ -1,6 +1,7 @@
 package berlin.iconn.rbm;
 
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
+import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
 import org.jblas.FloatMatrix;
@@ -10,19 +11,28 @@ public class Main {
 
     public static void main(String[] args) {
         float[][] data = {
-                {1, 0, 0, 0, 0, 0, 1},
-                {0, 1, 0, 0, 0, 1, 0},
-                {0, 0, 1, 0, 1, 0, 0},
-                {0, 0, 0, 1, 0, 0, 0},
-                {0, 0, 1, 1, 1, 0, 0},
-                {0, 1, 0, 1, 0, 1, 0},
-                {1, 0, 1, 0, 1, 0, 1}};
-        RBM rbm = new RBM(//new GetStatesFunction((mdata) -> (mdata.ge(FloatMatrix.rand(mdata.rows, mdata.columns)))), new GetStatesFunction(),
-                WeightsFactory.randomGaussianWeightsWithBias(9, 18, 0.01f, 45));
-        ATrainingDataProvider provider = new RandomPictureBatchSelectionProvider(new FloatMatrix[]{new FloatMatrix(data)},10, 3,3, 0);
+                {0, 0, 0, 1, 1},
+                {0, 0, 1, 1, 1},
+                {1, 0, 0, 1, 1},
+                {1, 1, 0, 0, 0},
+                {1, 1, 1, 0, 0},
+                {1, 1, 0, 0, 1}};
 
-        float[][] sampleData =  provider.getData().addiColumnVector(provider.getMeanVector()).toArray2();
-        rbm.train(provider, new StoppingCondition(1_000_000), new ConstantLearningRate(0.001f));
+        FloatMatrix weights = new FloatMatrix(6, 3,
+                0.0f, 0.0f, 0.0f,
+                0.0f, 0.003931488f, 0.0066873333f,
+                0.0f, 0.006410535f, -8.955293E-4f,
+                0.0f, -0.008205484f, 0.005057891f,
+                0.0f, 0.010423293f, 0.0072114877f,
+                0.0f, -0.014295372f, 0.006884049f);
+
+        RBM rbm = new RBM(weights);
+        ATrainingDataProvider provider = new FullTrainingDataProvider(data);
+
+        float[][] sampleData =  provider.getData().addColumnVector(provider.getMeanVector()).toArray2();
+        long start = System.currentTimeMillis();
+        rbm.train(provider, new StoppingCondition(100000), new ConstantLearningRate(0.1f));
+        System.out.println(System.currentTimeMillis() - start);
 
         print(sampleData);
         float[][] hidden = rbm.getHidden(sampleData);
@@ -34,7 +44,7 @@ public class Main {
     public static void print(float[][] data) {
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
-                System.out.print( Math.round(data[i][j]) + ", ");
+                System.out.print(data[i][j] + ", ");
             }
             System.out.println();
         }

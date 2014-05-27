@@ -15,8 +15,8 @@ public abstract class ATrainingDataProvider {
 
     public ATrainingDataProvider(FloatMatrix data) {
 
-       // setMeanVector(data.rowMeans());
-        setMeanVector(FloatMatrix.zeros(data.getRows(), 1));
+        setMeanVector(data.rowMeans());
+       // setMeanVector(FloatMatrix.zeros(data.getRows(), 1));
         this.setData(data.subColumnVector(meanVector));
     }
 
