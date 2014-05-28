@@ -71,7 +71,7 @@ public class MainTraining {
         System.out.println("image input size: " + imageInputSize);
         System.out.println("label input size: " + classes.length);
         
-        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 0.01f);
+        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 0.01f, true);
         
         System.out.println("start training");
         SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(trainingData, edgeLength, labels, classes, batchOffset, batchOffset, 1000, isRGB);

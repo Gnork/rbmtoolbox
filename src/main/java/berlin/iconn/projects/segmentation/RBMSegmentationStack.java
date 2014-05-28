@@ -8,7 +8,9 @@ package berlin.iconn.projects.segmentation;
 
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.*;
+import berlin.iconn.rbm.binarize.CommonBinarize;
 import berlin.iconn.rbm.learningRate.ILearningRate;
+import berlin.iconn.rbm.weightmodifier.DefaultModifier;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -28,29 +30,31 @@ public class RBMSegmentationStack{
     private IRBM imageRBM;
     private IRBM combiRBM;
     
-    public RBMSegmentationStack(int labelIn, int labelOut, int imageIn, int imageOut, int combiOut, float learningRate){
+    public RBMSegmentationStack(int labelIn, int labelOut, int imageIn, int imageOut, int combiOut, float learningRate, boolean binarizeHidden){
         this(   WeightsFactory.randomGaussianWeightsWithBias(labelIn, labelOut, learningRate),
                 WeightsFactory.randomGaussianWeightsWithBias(imageIn, imageOut, learningRate),
-                WeightsFactory.randomGaussianWeightsWithBias(labelOut + imageOut, combiOut, learningRate));
+                WeightsFactory.randomGaussianWeightsWithBias(labelOut + imageOut, combiOut, learningRate),
+                binarizeHidden);
     }
     
-    public RBMSegmentationStack(FloatMatrix labelWeights, FloatMatrix imageWeights, FloatMatrix combiWeights){
-        labelRBM = new RBM(labelWeights);
-        imageRBM = new RBM(imageWeights);
-        combiRBM = new RBM(combiWeights);
-        
-        //Date date = new Date();
-        //labelRBM.addEnhancement(new WeightsSaver(date, weightsSaverInterval, "label"));
-        //imageRBM.addEnhancement(new WeightsSaver(date, weightsSaverInterval, "image"));
-        //combiRBM.addEnhancement(new WeightsSaver(date, weightsSaverInterval, "combi"));
+    public RBMSegmentationStack(FloatMatrix labelWeights, FloatMatrix imageWeights, FloatMatrix combiWeights, boolean binarizeHidden){
+        if(binarizeHidden){
+            labelRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), labelWeights, new DefaultModifier());
+            imageRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), imageWeights, new DefaultModifier());
+            combiRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), combiWeights, new DefaultModifier());
+        }else{
+            labelRBM = new RBM(labelWeights);
+            imageRBM = new RBM(imageWeights);
+            combiRBM = new RBM(combiWeights);
+        }     
     }
 
 
-    public void train(SegmentationStackRandomBatchGenerator dataProvider, StoppingCondition stop, ILearningRate learningRate) {
+    public void train(SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate) {
         
-        SegmentationStackComponentProvider imageProvider = new SegmentationStackComponentProvider(dataProvider.getImageData());
-        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(dataProvider.getLabelData());
-        SegmentationStackComponentProvider combiProvider = new SegmentationStackComponentProvider(new FloatMatrix(dataProvider.getImageData().rows,1));
+        SegmentationStackComponentProvider imageProvider = new SegmentationStackComponentProvider(generator.getImageData());
+        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(generator.getLabelData());
+        SegmentationStackComponentProvider combiProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getImageData().rows,1));
         
         stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
         int allEpochs = stop.getMaxEpochs() * baseInterval;
@@ -58,9 +62,9 @@ public class RBMSegmentationStack{
         while(stop.isNotDone()){
             stop.update(0.0f);
             
-            dataProvider.changeDataAtTraining();           
-            FloatMatrix images = dataProvider.getImageData();
-            FloatMatrix labels = dataProvider.getLabelData();
+            generator.changeDataAtTraining();           
+            FloatMatrix images = generator.getImageData();
+            FloatMatrix labels = generator.getLabelData();
             imageProvider.setDataForTraining(images);
             labelProvider.setDataForTraining(labels);
             
@@ -98,8 +102,8 @@ public class RBMSegmentationStack{
         int labelOut = labelRBM.getWeights()[0].length  - 1;
         float[][] zeroLabels = new float[1][numOfClasses];
         float[][] labelHidden = labelRBM.getHidden(zeroLabels);
-        //float[][] imageHidden = imageRBM.getHidden(new float[][]{imagePatch});
-        float[][] imageHidden = new float[1][labelOut];
+        float[][] imageHidden = imageRBM.getHidden(new float[][]{imagePatch});
+        //float[][] imageHidden = new float[1][labelOut];
         float[][] combiVisible = concat(labelHidden, imageHidden);
         float[][] combiHidden = combiRBM.getHidden(combiVisible);
         float[][] combiReconstruct = combiRBM.getVisible(combiHidden);       

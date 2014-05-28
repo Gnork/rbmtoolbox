@@ -34,7 +34,7 @@ public class MainSegmentation {
     private static final String imageFile = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
     private static final String labelFile = "Data/SiftFlowDataset_small/SemanticLabels/labels/highway_urb713.mat";
     private static final String siftFlowClassesPath = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
-    private static final String dateString = "2014_05_27_15_38_16";
+    private static final String dateString = "2014_05_27_22_00_57";
     
     public static void main(String[] args) {
         String imageWeightsFile = "Output/SimpleWeights/" + dateString + "_image.dat";
@@ -58,7 +58,7 @@ public class MainSegmentation {
             return;
         }
         RBMSegmentationStack stack = new RBMSegmentationStack(new FloatMatrix(labelWeights),
-                new FloatMatrix(imageWeights), new FloatMatrix(combiWeights));
+                new FloatMatrix(imageWeights), new FloatMatrix(combiWeights), false);
         
         StackVisualization vis = new StackVisualization(stack, image, classes, minData, isRGB, batchOffset);
         
