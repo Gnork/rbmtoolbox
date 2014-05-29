@@ -22,7 +22,7 @@ import org.jblas.FloatMatrix;
  *
  * @author christoph
  */
-public class MainSegmentation {
+public class MainSegmentationOld {
     private static final int edgeLength = 256;
     private static final int batchOffset = 2;
     private static final int padding = 0;
@@ -34,33 +34,24 @@ public class MainSegmentation {
     private static final String imageFile = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
     private static final String labelFile = "Data/SiftFlowDataset_small/SemanticLabels/labels/highway_urb713.mat";
     private static final String siftFlowClassesPath = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
-    private static final String dateString = "2014_05_27_22_00_57";
+    private static final String weightsFile = "Output/SimpleWeights/weights_22_05_2014_10_13_05.dat";
     
     public static void main(String[] args) {
-        String imageWeightsFile = "Output/SimpleWeights/" + dateString + "_image.dat";
-        String labelWeightsFile = "Output/SimpleWeights/" + dateString + "_label.dat";
-        String combiWeightsFile = "Output/SimpleWeights/" + dateString + "_combi.dat";
-        float[][] labelWeights;
-        float[][] imageWeights;
-        float[][] combiWeights;
+        float[][] weights;
         String[] classes;
         float[] image;
         int[] label;
         try {
-            labelWeights = InOutOperations.loadSimpleWeights(new File(labelWeightsFile));
-            imageWeights = InOutOperations.loadSimpleWeights(new File(imageWeightsFile));
-            combiWeights = InOutOperations.loadSimpleWeights(new File(combiWeightsFile));
+            weights = InOutOperations.loadSimpleWeights(new File(weightsFile));
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClassesPath));
             image = DataConverter.processPixelData(ImageIO.read(new File(imageFile)), edgeLength, binarize, invert, minData, maxData, isRGB);
             label = InOutOperations.loadSiftFlowLabel(new File(labelFile));
         } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(MainSegmentation.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainSegmentationOld.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
-        RBMSegmentationStack stack = new RBMSegmentationStack(new FloatMatrix(labelWeights),
-                new FloatMatrix(imageWeights), new FloatMatrix(combiWeights), false);
-        
-        StackVisualization vis = new StackVisualization(stack, image, classes, minData, isRGB, batchOffset);
+        RBM rbm = new RBM(new FloatMatrix(weights));
+        InteractiveVisualization vis = new InteractiveVisualization(rbm, image, classes, minData, isRGB, batchOffset);
         
         new Frame(vis);
     }

@@ -3,17 +3,22 @@ package berlin.iconn.projects.segmentation;
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.DataConverter;
 import berlin.iconn.rbm.DataSet;
+import berlin.iconn.rbm.RBM;
 import berlin.iconn.rbm.StoppingCondition;
+import berlin.iconn.rbm.WeightsFactory;
+import berlin.iconn.rbm.enhancements.RBMEnhancer;
+import berlin.iconn.rbm.enhancements.WeightsSaver;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jblas.FloatMatrix;
 
 /**
  * Created by Moritz on 4/28/2014.
  */
-public class MainTraining {
+public class MainTrainingOld {
 
     private static final int edgeLength = 256;
     private static final int batchOffset = 2;
@@ -33,16 +38,7 @@ public class MainTraining {
         DataSet[] trainingDataSet;
         final String[] classes;
         final int[][] labels;
-        
-        /*
-        float[][] weights;      
-        try {
-            weights = InOutOperations.loadSimpleWeights(new File(weightsFile));
-            System.out.println("Weights loaded");
-        } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        */
+        float[][] weights;
         
         try {
             trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
@@ -51,9 +47,9 @@ public class MainTraining {
             System.out.println("Labels loaded");
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClasses));
             System.out.println("Classes loaded");
-            
-        } catch (IOException ex) {
-            Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
+            weights = InOutOperations.loadSimpleWeights(new File(weightsFile));
+        } catch (IOException | ClassNotFoundException ex) {
+            Logger.getLogger(MainTrainingOld.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
         
@@ -65,16 +61,22 @@ public class MainTraining {
         }
         
         int batchSize = 2 * batchOffset + 1;
-        int imageInputSize = (batchSize * batchSize);
-        if(isRGB) imageInputSize *= 3;
+        int inputSize = (batchSize * batchSize);
+        if(isRGB) inputSize *= 3;
+        inputSize += classes.length;
         
-        System.out.println("image input size: " + imageInputSize);
-        System.out.println("label input size: " + classes.length);
+        System.out.println("input size: " + inputSize);
         
-        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 0.01f, true);
+        FloatMatrix rbmWeights = new FloatMatrix(weights);
+        // FloatMatrix rbmWeights = new FloatMatrix(WeightsFactory.randomGaussianWeightsWithBias(inputSize, inputSize / 2, 0.01f));
+        RBMEnhancer enhancer = new RBMEnhancer(new RBM(rbmWeights));
+
+        enhancer.addEnhancement(new WeightsSaver(10000));
         
-        System.out.println("start training");
-        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(trainingData, edgeLength, labels, classes, batchOffset, batchOffset, 1000, isRGB);
-        stack.train(provider, new StoppingCondition(1000000), new ConstantLearningRate(0.2f));
+        System.out.println("Start training");
+
+        enhancer.train(new SegmentationRandomBatchProvider( trainingData, edgeLength, labels, classes, batchOffset, batchOffset, 100, isRGB),
+                new StoppingCondition(1000000),
+                new ConstantLearningRate(0.2f));
     }
 }

@@ -20,7 +20,7 @@ import javax.swing.JComponent;
  *
  * @author christoph
  */
-public class InteractiveVisualization extends JComponent implements MouseMotionListener{
+public class StackVisualization extends JComponent implements MouseListener{
     private final int compWidth = 800;
     private final int compHeight = 600;
     
@@ -29,17 +29,18 @@ public class InteractiveVisualization extends JComponent implements MouseMotionL
     
     private final int batchOffset;
     
-    private final RBM rbm;
+    private final RBMSegmentationStack stack;
     private final float[] image;
     private final String[] classes;
     private final boolean isRGB;
     
     private ImageComponent imgComp;
     
-    public InteractiveVisualization(RBM rbm, float[] image, String[] classes, float minData, boolean isRGB, int batchOffset){
-        this.rbm = rbm;
+    public StackVisualization(RBMSegmentationStack stack, float[] image, String[] classes, float minData, boolean isRGB, int batchOffset){
+        this.stack = stack;
         this.image = image;
         this.classes = classes;
+        // greyscale not supported yet
         this.isRGB = isRGB;
         this.batchOffset = batchOffset;
         
@@ -56,17 +57,11 @@ public class InteractiveVisualization extends JComponent implements MouseMotionL
         
         // Reconstruction
         
-        imgComp.addMouseMotionListener(this);
+        imgComp.addMouseListener(this);
     }
 
     @Override
-    public void mouseDragged(MouseEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        
+    public void mouseClicked(MouseEvent e) {
         int xMouse = e.getX();
         int yMouse = e.getY();
         
@@ -92,26 +87,39 @@ public class InteractiveVisualization extends JComponent implements MouseMotionL
             }
         }
         
-        float[] classArray = new float[this.classes.length];
-        float[] resultArray =  SegmentationRandomBatchProvider.concatArrays(classArray, batch);
-          
-        float[][] image2D = new float[1][resultArray.length];
-        image2D[0] = resultArray;
-        
-        float[][] hiddenNodes = rbm.getHidden(image2D);
-        float[][] labeledImage = rbm.getVisible(hiddenNodes);
+        float[] labelReconstruct = stack.reconstructLabel(batch, this.classes.length);
         
         String maxClass = "";
         float maxValue = 0.0f;
         
         for(int c = 0; c < classes.length; c++) {
-            if(labeledImage[0][c] > maxValue) {
-                maxValue = labeledImage[0][c];
+            if(labelReconstruct[c] > maxValue) {
+                maxValue = labelReconstruct[c];
                 maxClass = classes[c];
             }
         }
 
-        System.out.println(maxClass + " " + maxValue);
+        System.out.println(maxClass + ": " + maxValue);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     

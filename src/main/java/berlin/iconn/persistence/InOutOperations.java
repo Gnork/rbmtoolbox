@@ -8,7 +8,6 @@ package berlin.iconn.persistence;
 
 import berlin.iconn.rbm.DataConverter;
 import berlin.iconn.rbm.DataSet;
-import berlin.iconn.rbm.IRBM;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -32,12 +31,16 @@ public class InOutOperations {
     private static final String imageExportFolder = "Output/ImageExport"; 
     
     public static void saveSimpleWeights(float[][] weights, Date date) throws IOException{
+        saveSimpleWeights(weights, date, "weights");
+    }
+    
+    public static void saveSimpleWeights(float[][] weights, Date date, String suffix) throws IOException{
         mkdir(simpleWeightsFolder);
-        File file = new File(simpleWeightsFolder + "/" + getFileNameByDate(date, "weights", "dat"));
+        File file = new File(simpleWeightsFolder + "/" + getFileNameByDate(date, suffix, "dat"));
         ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file.toPath()));
         oos.writeObject(weights);
         oos.close();
-    }  
+    }
     
     public static float[][] loadSimpleWeights(File file) throws IOException, ClassNotFoundException{
 	ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file.toPath()));
@@ -46,12 +49,12 @@ public class InOutOperations {
         return weights; 
     }
     
-    public static void exportAsImage(float[] data, Date date, String prefix) throws IOException {
-        exportAsImage(new float[][]{data}, date, prefix);
+    public static void exportAsImage(float[] data, Date date, String suffix) throws IOException {
+        exportAsImage(new float[][]{data}, date, suffix);
     }
     
-    public static void exportAsImage(float[][] data, Date date, String prefix) throws IOException {
-        String path = imageExportFolder + "/" + getDirectoryNameByDate(date, prefix);
+    public static void exportAsImage(float[][] data, Date date, String suffix) throws IOException {
+        String path = imageExportFolder + "/" + getDirectoryNameByDate(date, suffix);
         mkdir(path);
         for (int i = 0; i < data.length; i++) {
             BufferedImage image = DataConverter.pixelDataToImage(data[i], 0.0f, false);
@@ -134,11 +137,11 @@ public class InOutOperations {
         return result;
     }
     
-    private static String getFileNameByDate(Date date, String prefix, String extension){
+    private static String getFileNameByDate(Date date, String suffix, String extension){
         if(date == null){
             return null;
         }
-        String result = getDirectoryNameByDate(date, prefix);       
+        String result = getDirectoryNameByDate(date, suffix);       
         extension = extension.trim();
         extension = extension.replaceAll(" ", "_");
         if(! extension.isEmpty()){
@@ -150,19 +153,18 @@ public class InOutOperations {
         return result;
     }
     
-    private static String getDirectoryNameByDate(Date date, String prefix){
+    private static String getDirectoryNameByDate(Date date, String suffix){
         if(date == null){
             return null;
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
-        String result = "";
-        prefix = prefix.trim();
-        prefix = prefix.replaceAll("\\.", "");
-        prefix = prefix.replaceAll(" ", "_");
-        if(! prefix.isEmpty()){
-            result += prefix + "_";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        String result = sdf.format(date);
+        suffix = suffix.trim();
+        suffix = suffix.replaceAll("\\.", "");
+        suffix = suffix.replaceAll(" ", "_");
+        if(! suffix.isEmpty()){
+            result += "_" + suffix;
         }
-        result += sdf.format(date);
         return result;
     }
     
