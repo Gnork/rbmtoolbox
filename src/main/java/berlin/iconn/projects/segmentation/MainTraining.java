@@ -29,27 +29,14 @@ public class MainTraining {
     
     public static void main(String[] args) {
 
-        DataSet[] trainingDataSet;
         final String[] classes;
-        final int[][] labels;
         
         try {
-            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
-            System.out.println("Images loaded");
-            labels = InOutOperations.loadSiftFlowLabels(new File(siftFlowLabels));
-            System.out.println("Labels loaded");
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClasses));
             System.out.println("Classes loaded");
             
         } catch (IOException ex) {
             Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        
-        final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
-        
-        if(labels.length != trainingData.length){
-            System.err.println("number of pics and labels does not match");
             return;
         }
         
