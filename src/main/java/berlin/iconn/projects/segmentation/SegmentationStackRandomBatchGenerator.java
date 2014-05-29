@@ -16,8 +16,7 @@ import org.jblas.FloatMatrix;
  */
 public final class SegmentationStackRandomBatchGenerator{
     private final Random random = new Random();
-    private final float[][] images;
-    private final int[][] labels;
+    private final RandomSiftFlowLoader loader;
     private final String[] classes;
     private final int edgeLength, batchXOffset, batchYOffset, batchCount;
     private final boolean isRGB;
@@ -25,9 +24,8 @@ public final class SegmentationStackRandomBatchGenerator{
     private FloatMatrix labelData;
     private FloatMatrix imageData;
 
-    public SegmentationStackRandomBatchGenerator(float[][] images, int edgeLength, int[][] labels, String[] classes, int batchXOffset, int batchYOffset, int batchCount, boolean isRGB) {
-        this.images = images;
-        this.labels = labels;
+    public SegmentationStackRandomBatchGenerator(RandomSiftFlowLoader loader, int edgeLength, String[] classes, int batchXOffset, int batchYOffset, int batchCount, boolean isRGB) {
+        this.loader = loader;
         this.classes = classes;
         this.batchXOffset = batchXOffset;
         this.batchYOffset = batchYOffset;
@@ -42,8 +40,13 @@ public final class SegmentationStackRandomBatchGenerator{
         int batchHeight = batchYOffset * 2 + 1; 
         float[][] labelDataArray = new float[batchCount][];
         float[][] imageDataArray = new float[batchCount][];
+        
+        float[][] images = new float[batchCount][];
+        int[][] labels = new int[batchCount][];
+        
+        loader.loadRandomImageAndLabels(images, labels);
+        
         for (int i = 0; i < batchCount; i++) {
-            int indexImage = random.nextInt(images.length);
             int indexRow = random.nextInt(edgeLength - batchHeight);
             int indexColumn = random.nextInt(edgeLength - batchWidth);
             if(isRGB){
@@ -52,9 +55,9 @@ public final class SegmentationStackRandomBatchGenerator{
                     for(int k = 0; k < batchWidth; ++k){
                         int batchPos = batchWidth * 3 * j + k * 3;
                         int imagePos = (indexRow + j) * edgeLength * 3 + (indexColumn + k) * 3;
-                        imageDataArray[i][batchPos] = images[indexImage][imagePos];
-                        imageDataArray[i][batchPos+1] = images[indexImage][imagePos+1];
-                        imageDataArray[i][batchPos+2] = images[indexImage][imagePos+2];
+                        imageDataArray[i][batchPos] = images[i][imagePos];
+                        imageDataArray[i][batchPos+1] = images[i][imagePos+1];
+                        imageDataArray[i][batchPos+2] = images[i][imagePos+2];
                     }
                 }
                 
@@ -64,11 +67,11 @@ public final class SegmentationStackRandomBatchGenerator{
                     for(int k = 0; k < batchWidth; ++k){
                         int batchPos = batchWidth * j + k;
                         int imagePos = (indexRow + j) * edgeLength + (indexColumn + k);
-                        imageDataArray[i][batchPos] = images[indexImage][imagePos];
+                        imageDataArray[i][batchPos] = images[i][imagePos];
                     }
                 }
             }
-            int label = labels[indexImage][(indexColumn + batchXOffset) + (indexRow + batchYOffset) * edgeLength];
+            int label = labels[i][(indexColumn + batchXOffset) + (indexRow + batchYOffset) * edgeLength];
             labelDataArray[i] = new float[classes.length];
             labelDataArray[i][label] = 1f;
         }
