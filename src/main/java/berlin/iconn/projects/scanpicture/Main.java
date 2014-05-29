@@ -21,7 +21,7 @@ public class Main {
 
     private static final boolean exportImages = true;
     private static final String exportPath = "export";
-    private static final int edgeLength = 256;
+    private static final int edgeLength = 512;
     private static final int padding = 0;
     private static final boolean isRGB = false;
     private static final boolean binarize = false;
@@ -41,8 +41,8 @@ public class Main {
         }
         final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
 
-        RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength / 2, 0.01f), new GrowingModifier()));
-
+       // RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * 4, 0.01f)));
+        RBMEnhancer enhancer = new RBMEnhancer(new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * rbmEdgeLength , 0.01f),false));
         ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[0]), rbmEdgeLength);
         new Frame(picture);
 
@@ -54,8 +54,8 @@ public class Main {
             batchSelectionData[i] = new FloatMatrix(edgeLength, edgeLength, trainingData[i]);
         }
 
-        enhancer.train(new RandomPictureBatchSelectionProvider( batchSelectionData, 2, rbmEdgeLength, rbmEdgeLength ),
+        enhancer.train(new RandomPictureBatchSelectionProvider( batchSelectionData, 100, rbmEdgeLength, rbmEdgeLength ),
                 new StoppingCondition(1000000),
-                new ConstantLearningRate(0.2f));
+                new ConstantLearningRate(0.01f));
     }
 }

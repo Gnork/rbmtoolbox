@@ -41,21 +41,29 @@ public class RBM  implements IRBM {
         final FloatMatrix dataWithBias = dataProvider.getDataWithBiasForTraining();
         final FloatMatrix dataWithBiasTrans = dataProvider.getTransposedDataWithBiasForTraining();
 
+//        show(weights.data, weights.rows, weights.columns, "weights");
+//        show(dataWithBias.data, dataWithBias.rows, dataWithBias.columns, "data");
         // first associations
         FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
+//        show(hidden.data, hidden.rows, hidden.columns, "hidden");
 
         final FloatMatrix positiveAssociations = new FloatMatrix(dataWithBiasTrans.rows, hidden.columns);
         ForkBlas.pmmuli(dataWithBiasTrans, hidden, positiveAssociations);
+//        show(positiveAssociations.data, positiveAssociations.rows, positiveAssociations.columns, "positive");
 
         // guessed Data
         FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose());
         visible.subiColumnVector(meanVector);
         visible.putColumn(0, FloatMatrix.ones(visible.getRows(), 1));
+//        show(visible.data, dataWithBias.rows, dataWithBias.columns, "data");
 
         // second associations
         hidden = getHiddenFunction.get(visible, weights);
+//        show(hidden.data, hidden.rows, hidden.columns, "hidden 2");
+
         final FloatMatrix negativeAssociations = new FloatMatrix(dataWithBiasTrans.rows, hidden.columns);
         ForkBlas.pmmuli(visible.transpose(), hidden, negativeAssociations);
+//        show(negativeAssociations.data, positiveAssociations.rows, positiveAssociations.columns, "negative");
 
         // contrastive divergence on weights // update
         weights.addi((positiveAssociations.sub(negativeAssociations))
@@ -86,6 +94,9 @@ public class RBM  implements IRBM {
     public void train(ATrainingDataProvider dataProvider, StoppingCondition stop, ILearningRate learningRate) {
             float error = getError(dataProvider);
             while(stop.isNotDone()) {
+//                System.out.println();
+//                System.out.println("Normal RBM Epoch: " + stop.getCurrentEpochs());
+//                System.out.println();
                 learningRate.changeRate(error);
                 updateWeights(dataProvider, learningRate);
                 weights = modifier.modify(weights, error, stop.getCurrentEpochs());
@@ -94,6 +105,20 @@ public class RBM  implements IRBM {
                 error = getError(dataProvider);
                 stop.update(error);
             }
+
+    }
+
+
+    public static void show(float[] data, int rows, int columns, String name)
+    {
+        System.out.println(name);
+        for (int i = 0; i < columns; i++) {
+            for (int j = 0; j < rows; j++) {
+                System.out.print(String.format("%.5f", data[i * rows + j]) + ", ");
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
     @Override

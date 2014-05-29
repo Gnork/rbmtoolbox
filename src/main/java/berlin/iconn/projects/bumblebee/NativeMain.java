@@ -23,18 +23,18 @@ import java.util.logging.Logger;
 /**
  * Created by Moritz on 5/18/2014.
  */
-public class Main {
+public class NativeMain {
 
     private static final boolean exportImages = true;
     private static final String exportPath = "export";
-    private static final int edgeLength = 28;
+    private static final int edgeLength = 128;
     private static final int padding = 0;
     private static final boolean isRGB = false;
     private static final boolean binarize = false;
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String images = "Data\\_mnist20";
+    private static final String images = "Data\\RGB_R02_0600x0600";
 
 
     public static void main(String[] args) {
@@ -50,65 +50,25 @@ public class Main {
 
 
         ExecutorService executor = Executors.newFixedThreadPool(8);
-        final float[][][] parts4 = split(trainingData, edgeLength, edgeLength);
+        final float[][][] parts = split(trainingData, edgeLength, edgeLength);
 
-        final float[][][] parts = new float[16][][];
 
-        final int edgelength2 = edgeLength / 2;
-        for (int i = 0; i < parts4.length; i++) {
-            float[][][] temp = split(parts4[i], edgelength2, edgelength2);
-            int index = 4 * i;
-            parts[index] = temp[0];
-            parts[index + 1] = temp[1];
-            parts[index + 2] = temp[2];
-            parts[index + 3] = temp[3];
-        }
 
-        final FutureTask<RBM>[] rbmFutures = new FutureTask[parts.length];
+        float[][] part = parts[0];
+        final NativeRBM[] rbms = new NativeRBM[parts.length];
+
         for (int i = 0; i < parts.length; i++) {
-            final int index = i;
-            final float[][] part = parts[i];
-            FutureTask<RBM> future;
-            final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, 7, 0.01f);
-            final StoppingCondition stoppingCondition = new StoppingCondition(1000);
-            final ConstantLearningRate learningRate = new ConstantLearningRate(0.5f);
-            final ATrainingDataProvider data = new FullTrainingDataProvider(part);
-            if(i == 0) {
-                future = new FutureTask<>(() -> {
-                    RBM rbm = new RBM(weights);
-                    RBMEnhancer enhancer = new RBMEnhancer(rbm);
 
-                    // view features
-                    FeatureDataVisualization featureDataVisualization = new FeatureDataVisualization(4, 20, edgeLength / 4, part);
-                    new Frame(featureDataVisualization);
-                    enhancer.addEnhancement(new TrainingVisualizer(1, featureDataVisualization));
+            part = parts[i];
+            final ConstantLearningRate learningRate = new ConstantLearningRate(0.005f);
+            final FullTrainingDataProvider data = new FullTrainingDataProvider(part);
+            final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, (int)(part[0].length * 0.75), 0.01f, 1337);
+            System.out.println("Start: " + i);
+            NativeRBM rbm = new NativeRBM(weights);
+            rbm.fastTrain(data, 2000, learningRate);
+            System.out.println("End: " + i);
+            rbms[i] = rbm;
 
-                    // view errors
-                    ErrorDataVisualization errorDataVisualization = new ErrorDataVisualization();
-                    new Frame(errorDataVisualization);
-                    enhancer.addEnhancement(new TrainingVisualizer(1, errorDataVisualization));
-
-                    enhancer.train(data, stoppingCondition, learningRate);
-                    return rbm;
-                });
-            } else future = new FutureTask<>(() -> {
-                System.out.println("Start: " + index);
-                RBM rbm = new RBM(weights);
-                rbm.train(data, stoppingCondition, learningRate);
-                System.out.println("End: " + index);
-                return rbm;
-            });
-            rbmFutures[i] = future;
-            executor.execute(future);
-        }
-
-        final RBM[] rbms = new RBM[rbmFutures.length];
-        for (int i = 0; i < rbms.length; i++) {
-            try {
-                rbms[i] = rbmFutures[i].get();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
 
@@ -117,24 +77,12 @@ public class Main {
             float[][] hidden = rbms[i].getHidden(parts[i]);
             visibles[i] = rbms[i].getVisible(hidden);
         }
-        float[][][] visibles4 = new float[rbms.length/ 4][][];
-
-        for (int i = 0; i < visibles4.length; i++) {
-            int index =  4 * i;
-
-            visibles4[i] = combine(new float[][][]{
-                    visibles[index],
-                    visibles[index + 1],
-                    visibles[index + 2],
-                    visibles[index + 3]
-            }, edgelength2, edgelength2);
-        }
 
         try {
 
             final Date date = new Date();
             InOutOperations.exportAsImage(trainingData, date, "original");
-            InOutOperations.exportAsImage(combine(visibles4, edgeLength, edgeLength), date, "recon");
+            InOutOperations.exportAsImage(combine(visibles, edgeLength, edgeLength), date, "recon");
 //            InOutOperations.exportAsImage(featurePics, date, "features");
         } catch (IOException e) {
             e.printStackTrace();

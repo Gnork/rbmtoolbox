@@ -16,16 +16,30 @@ public class NativeRBM implements IRBM {
     private boolean binarize;
 
 
+    private final GetStatesFunction getHiddenFunction;
+    private final GetStatesFunction getVisibleFunction;
 
+    public NativeRBM(FloatMatrix weights) {
+        this(weights, false);
+    }
+
+    public NativeRBM(FloatMatrix weights, boolean binarize) {
+        this.weights = weights;
+        this.binarize = binarize;
+
+        this.getVisibleFunction = this.getHiddenFunction = new GetStatesFunction();
+
+
+    }
 
     @Override
     public void train(ATrainingDataProvider dataProvider, StoppingCondition stop, ILearningRate learningRate) {
 
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
-        float[] mean = dataProvider.getMeanVector().data;
+        float[] mean = dataProvider.getMeanVector().toArray();
         createNativeRBM(
-                weights.data, weights.getColumns(),
-                data.data, data.rows, data.columns, mean,
+                weights.toArray(), weights.getColumns(),
+                data.toArray(), data.rows, data.columns, mean,
                 learningRate.getRate(), Runtime.getRuntime().availableProcessors());
  {
             float error = 1.0f;
@@ -42,19 +56,19 @@ public class NativeRBM implements IRBM {
 
                 data = dataProvider.getDataWithBiasForTraining();
                 mean = dataProvider.getMeanVector().data;
-                setNativeData(data.data, data.rows, data.columns, mean);
+                setNativeData(data.toArray(), data.rows, data.columns, mean);
 
                 error = getNativeError();
                 stop.update(error);
             }
         }
 
-        weights = new FloatMatrix(data.columns, weights.columns,getNativeWeights());
+        weights.data = getNativeWeights();
         deleteNativeRBM();
 
     }
     
-    public void fastTraining(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate)
+    public void fastTrain(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate)
     {
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
         float[] mean = dataProvider.getMeanVector().data;
@@ -68,11 +82,27 @@ public class NativeRBM implements IRBM {
                 trainNativeBinarizedWithoutError();
             }
         } else {
-            trainNativeWithoutError();
+            for (int i = 0; i < epochs; i++) {
+                setNativeLearningRate(learningRate.getRate());
+                trainNativeWithoutError();
+            }
         }
 
-        weights = new FloatMatrix(data.columns, weights.columns,getNativeWeights());
+         weights.data = getNativeWeights();
+
         deleteNativeRBM();
+    }
+
+
+    public FloatMatrix getHidden(FloatMatrix data) {
+        FullTrainingDataProvider provider = new FullTrainingDataProvider(data);
+        return removeBiasFromData(getHiddenFunction.get(provider.getDataWithBias(), weights));
+    }
+
+
+    public FloatMatrix getVisible(FloatMatrix data) {
+        FullTrainingDataProvider provider = new FullTrainingDataProvider(data);
+        return removeBiasFromData(getHiddenFunction.get(provider.getDataWithBias(), weights.transpose()));
     }
 
     @Override
@@ -82,17 +112,21 @@ public class NativeRBM implements IRBM {
 
     @Override
     public float[][] getHidden(float[][] data) {
-        return new float[0][];
+        return getHidden(new FloatMatrix(data)).toArray2();
     }
 
     @Override
     public float[][] getVisible(float[][] data) {
-        return new float[0][];
+        return getVisible(new FloatMatrix(data)).toArray2();
     }
 
     @Override
     public float[][] getWeights() {
-        return new float[0][];
+        return weights.toArray2();
+    }
+
+    private FloatMatrix removeBiasFromData(FloatMatrix data) {
+        return data.getRange(0, data.getRows(), 1, data.getColumns());
     }
 
     private native void createNativeRBM(
