@@ -47,22 +47,20 @@ public class NativeMain {
             return;
         }
         final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
-
-
-        ExecutorService executor = Executors.newFixedThreadPool(8);
+        final FullTrainingDataProvider getMean = new FullTrainingDataProvider(new FloatMatrix(trainingData));
         final float[][][] parts = split(trainingData, edgeLength, edgeLength);
 
 
 
-        float[][] part = parts[0];
+
         final NativeRBM[] rbms = new NativeRBM[parts.length];
 
         for (int i = 0; i < parts.length; i++) {
 
-            part = parts[i];
+            float[][] part = parts[i];
             final ConstantLearningRate learningRate = new ConstantLearningRate(0.005f);
-            final FullTrainingDataProvider data = new FullTrainingDataProvider(part);
-            final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, (int)(part[0].length * 0.75), 0.01f, 1337);
+            final FullTrainingDataProvider data = new FullTrainingDataProvider(new FloatMatrix(part), getMean.getMeanVectorForTraining());
+            final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, 100, 0.01f, 1337);
             System.out.println("Start: " + i);
             NativeRBM rbm = new NativeRBM(weights);
             rbm.fastTrain(data, 2000, learningRate);

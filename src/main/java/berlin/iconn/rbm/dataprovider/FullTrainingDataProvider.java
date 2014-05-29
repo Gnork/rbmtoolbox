@@ -7,6 +7,9 @@ import org.jblas.FloatMatrix;
  */
 public class FullTrainingDataProvider extends ATrainingDataProvider {
 
+    public FullTrainingDataProvider(FloatMatrix data, FloatMatrix mean) {
+        super(data, mean);
+    }
 
     public FullTrainingDataProvider(FloatMatrix data) {
         super(data);
