@@ -23,26 +23,15 @@ public class MainTraining {
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String images = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories";
-    private static final String siftFlowLabels = "Data/SiftFlowDataset_small/SemanticLabels/labels";
-    private static final String siftFlowClasses = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
-    private static final String weightsFile = "Output/SimpleWeights/weights_22_05_2014_01_02_32.dat";
+    private static final String images = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories";
+    private static final String siftFlowLabels = "Data/SiftFlowDataset/SemanticLabels/labels";
+    private static final String siftFlowClasses = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
     
     public static void main(String[] args) {
 
         DataSet[] trainingDataSet;
         final String[] classes;
         final int[][] labels;
-        
-        /*
-        float[][] weights;      
-        try {
-            weights = InOutOperations.loadSimpleWeights(new File(weightsFile));
-            System.out.println("Weights loaded");
-        } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        */
         
         try {
             trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
@@ -71,10 +60,13 @@ public class MainTraining {
         System.out.println("image input size: " + imageInputSize);
         System.out.println("label input size: " + classes.length);
         
-        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 0.01f, true);
+        RandomSiftFlowLoader loader = new RandomSiftFlowLoader(new File(images), new File(siftFlowLabels), edgeLength, binarize, invert, minData, maxData, isRGB);
+        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, isRGB);
+        
+        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 30, 0.01f, true);
         
         System.out.println("start training");
-        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(trainingData, edgeLength, labels, classes, batchOffset, batchOffset, 1000, isRGB);
-        stack.train(provider, new StoppingCondition(1000000), new ConstantLearningRate(0.2f));
+        
+        stack.train(provider, new StoppingCondition(1000000), new ConstantLearningRate(0.1f));
     }
 }

@@ -9,8 +9,6 @@ package berlin.iconn.projects.segmentation;
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.DataConverter;
 import berlin.iconn.rbm.Frame;
-import berlin.iconn.rbm.RBM;
-import berlin.iconn.rbm.WeightsFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -31,25 +29,31 @@ public class MainSegmentation {
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String imageFile = "Data/SiftFlowDataset_small/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
-    private static final String labelFile = "Data/SiftFlowDataset_small/SemanticLabels/labels/highway_urb713.mat";
-    private static final String siftFlowClassesPath = "Data/SiftFlowDataset_small/SemanticLabels/classes.mat";
-    private static final String dateString = "2014_05_27_22_00_57";
+    private static final String imageFile = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
+    private static final String labelFile = "Data/SiftFlowDataset/SemanticLabels/labels/highway_urb713.mat";
+    private static final String siftFlowClassesPath = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
+    private static final String dateString = "2014_05_28_14_36_57";
     
     public static void main(String[] args) {
         String imageWeightsFile = "Output/SimpleWeights/" + dateString + "_image.dat";
         String labelWeightsFile = "Output/SimpleWeights/" + dateString + "_label.dat";
         String combiWeightsFile = "Output/SimpleWeights/" + dateString + "_combi.dat";
+        String assocWeightsFile = "Output/SimpleWeights/" + dateString + "_assoc.dat";
+        
         float[][] labelWeights;
         float[][] imageWeights;
         float[][] combiWeights;
+        float[][] assocWeights;
+        
         String[] classes;
         float[] image;
         int[] label;
+        
         try {
             labelWeights = InOutOperations.loadSimpleWeights(new File(labelWeightsFile));
             imageWeights = InOutOperations.loadSimpleWeights(new File(imageWeightsFile));
             combiWeights = InOutOperations.loadSimpleWeights(new File(combiWeightsFile));
+            assocWeights = InOutOperations.loadSimpleWeights(new File(assocWeightsFile));
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClassesPath));
             image = DataConverter.processPixelData(ImageIO.read(new File(imageFile)), edgeLength, binarize, invert, minData, maxData, isRGB);
             label = InOutOperations.loadSiftFlowLabel(new File(labelFile));
@@ -58,7 +62,8 @@ public class MainSegmentation {
             return;
         }
         RBMSegmentationStack stack = new RBMSegmentationStack(new FloatMatrix(labelWeights),
-                new FloatMatrix(imageWeights), new FloatMatrix(combiWeights), false);
+                new FloatMatrix(imageWeights), new FloatMatrix(combiWeights),
+                new FloatMatrix(assocWeights), false);
         
         StackVisualization vis = new StackVisualization(stack, image, classes, minData, isRGB, batchOffset);
         
