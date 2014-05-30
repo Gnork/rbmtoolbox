@@ -27,7 +27,7 @@ public class NativeMain {
 
     private static final boolean exportImages = true;
     private static final String exportPath = "export";
-    private static final int edgeLength = 128;
+    private static final int edgeLength = 64;
     private static final int padding = 0;
     private static final boolean isRGB = false;
     private static final boolean binarize = false;
@@ -58,12 +58,12 @@ public class NativeMain {
         for (int i = 0; i < parts.length; i++) {
 
             float[][] part = parts[i];
-            final ConstantLearningRate learningRate = new ConstantLearningRate(0.005f);
+            final ConstantLearningRate learningRate = new ConstantLearningRate(0.01f);
             final FullTrainingDataProvider data = new FullTrainingDataProvider(new FloatMatrix(part), getMean.getMeanVectorForTraining());
             final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, 100, 0.01f, 1337);
             System.out.println("Start: " + i);
             NativeRBM rbm = new NativeRBM(weights);
-            rbm.fastTrain(data, 2000, learningRate);
+            rbm.fastTrain(data, 30000, learningRate);
             System.out.println("End: " + i);
             rbms[i] = rbm;
 
