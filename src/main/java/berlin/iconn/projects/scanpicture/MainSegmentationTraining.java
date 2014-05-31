@@ -6,7 +6,9 @@ import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
 import berlin.iconn.rbm.enhancements.WeightsSaver;
+import berlin.iconn.rbm.enhancements.visualizations.ErrorDataVisualization;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -33,7 +35,7 @@ public class MainSegmentationTraining {
     private static final String images = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories";
     private static final String siftFlowLabels = "Data/SiftFlowDataset/SemanticLabels/labels";
     private static final String siftFlowClasses = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
-    
+
     public static void main(String[] args) {
 
         int rbmEdgeLength = 8;
@@ -51,16 +53,22 @@ public class MainSegmentationTraining {
         ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[0]), rbmEdgeLength);
         new Frame(picture);
 
-        enhancer.addEnhancement(new TrainingVisualizer(1,picture));
+        /*
+        // view error graph/ chart
+        ErrorDataVisualization errorDataVisualization = new ErrorDataVisualization();
+        new Frame(errorDataVisualization);
+        enhancer.addEnhancement(new TrainingVisualizer(1, errorDataVisualization));
+        */
+        enhancer.addEnhancement(new TrainingVisualizer(1, picture));
         enhancer.addEnhancement(new WeightsSaver(10000));
 
-        FloatMatrix[] batchSelectionData =  new FloatMatrix[trainingData.length];
+        FloatMatrix[] batchSelectionData = new FloatMatrix[trainingData.length];
         //prepare data for batch selection
         for (int i = 0; i < trainingData.length; i++) {
             batchSelectionData[i] = new FloatMatrix(edgeLength, edgeLength, trainingData[i]);
         }
 
-        enhancer.train(new RandomPictureBatchSelectionProvider( batchSelectionData, 2, rbmEdgeLength, rbmEdgeLength ),
+        enhancer.train(new RandomPictureBatchSelectionProvider(batchSelectionData, 2, rbmEdgeLength, rbmEdgeLength),
                 new StoppingCondition(1000000),
                 new ConstantLearningRate(0.2f));
     }
