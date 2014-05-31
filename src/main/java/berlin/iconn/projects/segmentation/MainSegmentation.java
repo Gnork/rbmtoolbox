@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+
+import berlin.iconn.rbm.enhancements.TrainingVisualizer;
+import berlin.iconn.rbm.enhancements.visualizations.ErrorDataVisualization;
 import org.jblas.FloatMatrix;
 
 /**
@@ -64,9 +67,12 @@ public class MainSegmentation {
         RBMSegmentationStack stack = new RBMSegmentationStack(new FloatMatrix(labelWeights),
                 new FloatMatrix(imageWeights), new FloatMatrix(combiWeights),
                 new FloatMatrix(assocWeights), false);
-        
+
         StackVisualization vis = new StackVisualization(stack, image, classes, minData, isRGB, batchOffset);
-        
         new Frame(vis);
+
+        OriginalLabelVisualisation vis2 = new OriginalLabelVisualisation(stack, label, classes, minData, isRGB, batchOffset);
+        new Frame(vis2);
+
     }
 }
