@@ -99,10 +99,10 @@ public class RBMSegmentationStack{
 
     public void train(SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate) {
         
-        SegmentationStackComponentProvider imageProvider = new SegmentationStackComponentProvider(generator.getImageData());
-        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(generator.getLabelData());
-        SegmentationStackComponentProvider combiProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getImageData().rows,1));
-        SegmentationStackComponentProvider assocProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getImageData().rows,1));
+        SegmentationStackComponentProvider imageProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
+        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
+        SegmentationStackComponentProvider combiProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
+        SegmentationStackComponentProvider assocProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
         
         stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
         int allEpochs = stop.getMaxEpochs() * baseInterval;
