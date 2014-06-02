@@ -28,8 +28,6 @@ public class NativeRBM implements IRBM {
         this.binarize = binarize;
 
         this.getVisibleFunction = this.getHiddenFunction = new GetStatesFunction();
-
-
     }
 
     @Override
@@ -38,10 +36,10 @@ public class NativeRBM implements IRBM {
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
         float[] mean = dataProvider.getMeanVector().toArray();
         createNativeRBM(
-                weights.toArray(), weights.getColumns(),
-                data.toArray(), data.rows, data.columns, mean,
-                learningRate.getRate(), Runtime.getRuntime().availableProcessors());
- {
+            weights.toArray(), weights.getColumns(),
+            data.toArray(), data.rows, data.columns, mean,
+            learningRate.getRate(), Runtime.getRuntime().availableProcessors());
+        {
             float error = 1.0f;
             while(stop.isNotDone()) {
                 learningRate.changeRate(error);
