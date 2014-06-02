@@ -37,6 +37,7 @@ public class StackVisualization extends JComponent implements MouseListener {
     private ImageComponent imgComp;
 
 
+    
     RGB[] colors = new RGB[]{
             new RGB(104, 104, 3),
             new RGB(33, 44, 77),
