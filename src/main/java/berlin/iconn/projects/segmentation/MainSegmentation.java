@@ -35,7 +35,7 @@ public class MainSegmentation {
     private static final String imageFile = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
     private static final String labelFile = "Data/SiftFlowDataset/SemanticLabels/labels/highway_urb713.mat";
     private static final String siftFlowClassesPath = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
-    private static final String dateString = "2014_05_28_14_36_57";
+    private static final String dateString = "2014_06_02_13_50_23";
     
     public static void main(String[] args) {
         String imageWeightsFile = "Output/SimpleWeights/" + dateString + "_image.dat";
@@ -70,10 +70,8 @@ public class MainSegmentation {
 
         StackVisualization vis = new StackVisualization(stack, image, label, classes, minData, isRGB, batchOffset);
         new Frame(vis);
-        
 
         // OriginalLabelVisualisation vis2 = new OriginalLabelVisualisation(stack, label, classes, minData, isRGB, batchOffset);
         // new Frame(vis2);
-
     }
 }

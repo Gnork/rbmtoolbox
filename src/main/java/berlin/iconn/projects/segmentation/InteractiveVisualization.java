@@ -21,7 +21,7 @@ import javax.swing.JComponent;
  * @author christoph
  */
 public class InteractiveVisualization extends JComponent implements MouseMotionListener{
-    private final int compWidth = 800;
+    private final int compWidth = 1000;
     private final int compHeight = 600;
     
     private final int imageWidth;
