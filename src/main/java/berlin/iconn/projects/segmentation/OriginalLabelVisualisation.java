@@ -32,7 +32,6 @@ public class OriginalLabelVisualisation extends JComponent implements MouseListe
     public OriginalLabelVisualisation(RBMSegmentationStack s, int[] im, String[] c, float minData, boolean is, int bo) {
         stack = s;
 
-        // works in principle...labelimage is 90degrees rotated though counterclockwise
         image = new float[im.length * 3];
 
         int t = 0;
@@ -41,7 +40,6 @@ public class OriginalLabelVisualisation extends JComponent implements MouseListe
             image[i] = m;
             image[i + 1] = m;
             image[i + 2] = m;
-
             t++;
         }
 
