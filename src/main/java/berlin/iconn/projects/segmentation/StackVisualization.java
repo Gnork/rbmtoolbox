@@ -13,13 +13,13 @@ import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import javax.swing.JComponent;
+import javax.swing.*;
 
 /**
  * @author christoph
  */
 public class StackVisualization extends JComponent implements MouseListener {
-    private final int compWidth = 800;
+    private final int compWidth = 1200;
     private final int compHeight = 600;
 
     private final int imageWidth;
@@ -36,24 +36,10 @@ public class StackVisualization extends JComponent implements MouseListener {
 
     private ImageComponent imgComp;
 
-    class RGB {
-        float a, b, c;
-
-        RGB(int rr, int gg, int bb) {
-            a = rr / 255.0f;
-            b = gg / 255.0f;
-            c = bb / 255.0f;
-        }
-        RGB() {
-            a = (float) Math.random();
-            b = (float) Math.random();
-            c = (float) Math.random();
-        }
-    }
 
     RGB[] colors = new RGB[]{
-            new RGB(34, 3, 3),
-            new RGB(),
+            new RGB(104, 104, 3),
+            new RGB(33, 44, 77),
             new RGB(),
             new RGB(),
             new RGB(),
@@ -123,6 +109,7 @@ public class StackVisualization extends JComponent implements MouseListener {
             new RGB(),
             new RGB()
     };
+    InteractiveKeyVisualisation itable;
 
     public StackVisualization(RBMSegmentationStack stack, float[] oi, int[] li, String[] classes, float minData, boolean isRGB, int batchOffset) {
         this.stack = stack;
@@ -150,9 +137,25 @@ public class StackVisualization extends JComponent implements MouseListener {
         stackImage = labelDataToImage(createStackImage(stack));
         BufferedImage bi3 = DataConverter.pixelDataToImage(stackImage, minData, isRGB);
         this.add(new ImageComponent(bi3));
-        this.repaint();
 
+        itable = new InteractiveKeyVisualisation();
+
+        for (int c = 0; c < classes.length; c++) {
+            itable.addRow(classes[c], colors[c], 0.0f);
+        }
+        /*
+        itable.setValueAt(23, 0, 2);
+        itable.setValueAt(23, 0, 3);
+        */
+        this.add(itable);
+
+        this.repaint();
         imgComp.addMouseListener(this);
+    }
+
+    private void updateRow(int i, float p) {
+        itable.setValueAt((int) (p * 100), i, 2);
+        itable.setValueAt(((int) Math.round(p * 100)) + "%", i, 3);
     }
 
     private int[] createStackImage(RBMSegmentationStack s) {
@@ -207,9 +210,9 @@ public class StackVisualization extends JComponent implements MouseListener {
         int t = 0;
         for (int i = 0; i < im.length * 3; i += 3) {
             int m = im[t];
-            tmpImage[i] = colors[m].a;
-            tmpImage[i + 1] = colors[m].b;
-            tmpImage[i + 2] = colors[m].c;
+            tmpImage[i] = colors[m].nr;
+            tmpImage[i + 1] = colors[m].ng;
+            tmpImage[i + 2] = colors[m].nb;
             t++;
         }
         return tmpImage;
@@ -248,6 +251,10 @@ public class StackVisualization extends JComponent implements MouseListener {
         float maxValue = 0.0f;
 
         for (int c = 0; c < classes.length; c++) {
+            updateRow(c, labelReconstruct[c]);
+           // System.out.println(c + ": " + labelReconstruct[c]);
+            //
+            //
             if (labelReconstruct[c] > maxValue) {
                 maxValue = labelReconstruct[c];
                 maxClass = classes[c];
