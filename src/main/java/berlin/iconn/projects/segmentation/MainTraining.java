@@ -54,6 +54,6 @@ public class MainTraining {
         
         System.out.println("start training");
         
-        stack.train(provider, new StoppingCondition(1000000), new ConstantLearningRate(0.1f));
+        stack.train(provider, new StoppingCondition(1000), new ConstantLearningRate(0.1f));
     }
 }
