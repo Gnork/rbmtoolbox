@@ -48,12 +48,12 @@ public class MainTraining {
         System.out.println("label input size: " + classes.length);
         
         RandomSiftFlowLoader loader = new RandomSiftFlowLoader(new File(images), new File(siftFlowLabels), edgeLength, binarize, invert, minData, maxData, isRGB);
-        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, isRGB);
+        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, 250, isRGB);
         
         RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 30, 0.01f, true);
         
         System.out.println("start training");
         
-        stack.train(provider, new StoppingCondition(1000000), new ConstantLearningRate(0.1f));
+        stack.train(provider, new StoppingCondition(1000), new ConstantLearningRate(0.1f));
     }
 }

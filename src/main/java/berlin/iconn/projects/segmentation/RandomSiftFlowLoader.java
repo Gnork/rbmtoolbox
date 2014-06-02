@@ -43,8 +43,20 @@ public class RandomSiftFlowLoader {
     }
     
     public void loadRandomImagesAndLabels(float[][] imagesDest, int[][] labelsDest){
-        loadRandomImages(imagesDest);
-        loadRandomLabels(labelsDest);
+        int count = imagesDest.length;
+        final File[] imageFiles = imagePath.listFiles((File dir, String name) -> (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif")));
+        final File[] labelFiles = labelPath.listFiles((File dir, String name) -> (name.endsWith("mat")));
+        int fileLen = imageFiles.length;
+        int nextRandom;
+        for(int i = 0; i < count; ++i){
+            nextRandom = random.nextInt(fileLen);
+            try {
+                imagesDest[i] = DataConverter.processPixelData(ImageIO.read(imageFiles[nextRandom]), edgeLength, binarize, invert, minData, maxData, isRGB);
+                labelsDest[i] = InOutOperations.loadSiftFlowLabel(labelFiles[i]);
+            } catch (IOException ex) {
+                Logger.getLogger(RandomSiftFlowLoader.class.getName()).log(Level.SEVERE, null, ex);
+            }           
+        }
     }
     
     public void loadRandomImages(float[][] imagesDest){

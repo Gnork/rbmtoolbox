@@ -147,5 +147,4 @@ public class RBM  implements IRBM {
     private FloatMatrix removeBiasFromData(FloatMatrix data) {
         return data.getRange(0, data.getRows(), 1, data.getColumns());
     }
-
 }

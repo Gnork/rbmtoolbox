@@ -62,92 +62,39 @@ public class RBMSegmentationStack{
         }     
     }
     
-    public void trainLabels(FloatMatrix labelWeights, SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate, boolean binarizeHidden){
-        FloatMatrix weights = new FloatMatrix(labelRBM.getWeights());
-        if(labelWeights != null){
-            weights = labelWeights;
-        }
-        if(binarizeHidden){
-            labelRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), weights, new DefaultModifier());
-        }else{
-            labelRBM = new RBM(new GetStatesFunction(), new GetStatesFunction(), weights, new DefaultModifier());
-        }
+    public void trainRBM(IRBM rbm, SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){
+        
         stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
         int allEpochs = stop.getMaxEpochs() * baseInterval;
         
-        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(generator.getLabelData());
+        SegmentationStackComponentProvider provider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
         
         while(stop.isNotDone()){
             stop.update(0.0f);
-            generator.changeDataAtTraining();     
-            labelProvider.setDataForTraining(generator.getLabelData());          
-            labelRBM.train(labelProvider, new StoppingCondition(baseInterval), learningRate);
+            generator.changeDataAtTraining();
+            FloatMatrix trainingData = data.getData(generator);
+            provider.setDataForTraining(trainingData);          
+            rbm.train(provider, new StoppingCondition(baseInterval), learningRate);
             
-            float labelError = labelRBM.getError(generator.getLabelData().toArray2());
+            float error = rbm.getError(trainingData.toArray2());
             int epochs = stop.getCurrentEpochs() * baseInterval;
-            
+                       
             try {
-                InOutOperations.saveSimpleWeights(labelRBM.getWeights(), date, "label");
+                InOutOperations.saveSimpleWeights(rbm.getWeights(), date, data.getName());
             } catch (IOException ex) {
                 System.err.println("Could not save weights");
                 Logger.getLogger(RBMSegmentationStack.class.getName()).log(Level.SEVERE, null, ex);
             }          
-            System.out.println("labels: " + labelError + "\tepochs: " + epochs + " / " + allEpochs);
-        }      
+            System.out.println(data.getName() + " -> error: " + error + "\tepochs: " + epochs + " / " + allEpochs);
+        }
     }
 
 
     public void train(SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate) {
-        
-        SegmentationStackComponentProvider imageProvider = new SegmentationStackComponentProvider(generator.getImageData());
-        SegmentationStackComponentProvider labelProvider = new SegmentationStackComponentProvider(generator.getLabelData());
-        SegmentationStackComponentProvider combiProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getImageData().rows,1));
-        SegmentationStackComponentProvider assocProvider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getImageData().rows,1));
-        
-        stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
-        int allEpochs = stop.getMaxEpochs() * baseInterval;
-        
-        while(stop.isNotDone()){
-            stop.update(0.0f);
-            
-            generator.changeDataAtTraining();           
-            FloatMatrix images = generator.getImageData();
-            FloatMatrix labels = generator.getLabelData();
-            imageProvider.setDataForTraining(images);
-            labelProvider.setDataForTraining(labels);          
-            imageRBM.train(imageProvider, new StoppingCondition(baseInterval), learningRate);
-            labelRBM.train(labelProvider, new StoppingCondition(baseInterval), learningRate);
-            
-            float[][] imageHidden = imageRBM.getHidden(images.toArray2());
-            float[][] labelHidden = labelRBM.getHidden(labels.toArray2());
-            float[][] concatHidden = concat(labelHidden, imageHidden);
-            combiProvider.setDataForTraining(new FloatMatrix(concatHidden));          
-            combiRBM.train(combiProvider, new StoppingCondition(baseInterval), learningRate);
-            
-            float[][] combiHidden = combiRBM.getHidden(concatHidden);
-            assocProvider.setDataForTraining(new FloatMatrix(combiHidden));
-            assocRBM.train(assocProvider, new StoppingCondition(baseInterval), learningRate);
-            
-            
-            // logging functions
-            float imageError = imageRBM.getError(images.toArray2());
-            float labelError = labelRBM.getError(labels.toArray2());
-            float combiError = combiRBM.getError(concatHidden);
-            float assocError = assocRBM.getError(combiHidden);
-            int epochs = stop.getCurrentEpochs() * baseInterval;
-            
-            try {
-                InOutOperations.saveSimpleWeights(imageRBM.getWeights(), date, "image");
-                InOutOperations.saveSimpleWeights(labelRBM.getWeights(), date, "label");
-                InOutOperations.saveSimpleWeights(combiRBM.getWeights(), date, "combi");
-                InOutOperations.saveSimpleWeights(assocRBM.getWeights(), date, "assoc");
-            } catch (IOException ex) {
-                System.err.println("Could not save weights");
-                Logger.getLogger(RBMSegmentationStack.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            System.out.println("labels: " + labelError + "\timages: " + imageError + "\tcombi: " + combiError + "\tassoc: " + assocError + "\tepochs: " + epochs + " / " + allEpochs);
-        }
+        trainRBM(labelRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new LabelData());
+        trainRBM(imageRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new ImageData());
+        trainRBM(combiRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new CombiData());
+        trainRBM(assocRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new AssocData());
     }
     
     public float[] reconstructLabel(float[] imagePatch, int numOfClasses){
@@ -180,5 +127,64 @@ public class RBMSegmentationStack{
         System.arraycopy(A, 0, R, 0, A.length);
         System.arraycopy(B, 0, R, A.length, B.length);
         return R;
+    }
+    
+    interface ITrainingData{
+        FloatMatrix getData(SegmentationStackRandomBatchGenerator generator);
+        String getName();
+    }
+    
+    class LabelData implements ITrainingData{
+        @Override
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
+            return generator.getLabelData();
+        }
+        @Override
+        public String getName() {
+            return "label";
+        }
+    }
+    
+    class ImageData implements ITrainingData{
+        @Override
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
+            return generator.getImageData();
+        }
+        @Override
+        public String getName() {
+            return "image";
+        }
+    }
+    
+    class CombiData implements ITrainingData{
+        @Override
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
+            FloatMatrix labelData = generator.getLabelData();
+            FloatMatrix imageData = generator.getImageData();
+            float[][] labelHidden = labelRBM.getHidden(labelData.toArray2());
+            float[][] imageHidden = imageRBM.getHidden(imageData.toArray2());
+            return new FloatMatrix(concat(labelHidden, imageHidden));
+        }
+        @Override
+        public String getName() {
+            return "combi";
+        }
+    }
+    
+    class AssocData implements ITrainingData{
+        @Override
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
+            FloatMatrix labelData = generator.getLabelData();
+            FloatMatrix imageData = generator.getImageData();
+            float[][] labelHidden = labelRBM.getHidden(labelData.toArray2());
+            float[][] imageHidden = imageRBM.getHidden(imageData.toArray2());
+            float[][] combiData = concat(labelHidden, imageHidden);
+            float[][] combiHidden = combiRBM.getHidden(combiData);
+            return new FloatMatrix(combiHidden);
+        }
+        @Override
+        public String getName() {
+            return "assoc";
+        }
     }
 }

@@ -133,7 +133,6 @@ public class InOutOperations {
     
     public static String[] loadSiftFlowClasses(File file) throws FileNotFoundException, IOException{
         List<String> resultList = new LinkedList<>();
-        resultList.add("undefined");
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
