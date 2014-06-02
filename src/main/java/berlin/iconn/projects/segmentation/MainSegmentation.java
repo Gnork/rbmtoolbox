@@ -68,11 +68,12 @@ public class MainSegmentation {
                 new FloatMatrix(imageWeights), new FloatMatrix(combiWeights),
                 new FloatMatrix(assocWeights), false);
 
-        StackVisualization vis = new StackVisualization(stack, image, classes, minData, isRGB, batchOffset);
+        StackVisualization vis = new StackVisualization(stack, image, label, classes, minData, isRGB, batchOffset);
         new Frame(vis);
+        
 
-        OriginalLabelVisualisation vis2 = new OriginalLabelVisualisation(stack, label, classes, minData, isRGB, batchOffset);
-        new Frame(vis2);
+        // OriginalLabelVisualisation vis2 = new OriginalLabelVisualisation(stack, label, classes, minData, isRGB, batchOffset);
+        // new Frame(vis2);
 
     }
 }
