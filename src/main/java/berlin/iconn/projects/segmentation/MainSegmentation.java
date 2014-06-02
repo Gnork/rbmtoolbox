@@ -70,6 +70,7 @@ public class MainSegmentation {
 
         StackVisualization vis = new StackVisualization(stack, image, label, classes, minData, isRGB, batchOffset);
         new Frame(vis);
+        
 
         // OriginalLabelVisualisation vis2 = new OriginalLabelVisualisation(stack, label, classes, minData, isRGB, batchOffset);
         // new Frame(vis2);

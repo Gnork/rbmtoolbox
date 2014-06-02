@@ -44,7 +44,6 @@ public class StackVisualization extends JComponent implements MouseListener {
             b = gg / 255.0f;
             c = bb / 255.0f;
         }
-
         RGB() {
             a = (float) Math.random();
             b = (float) Math.random();
