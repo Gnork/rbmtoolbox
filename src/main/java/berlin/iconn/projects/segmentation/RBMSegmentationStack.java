@@ -72,6 +72,7 @@ public class RBMSegmentationStack{
         while(stop.isNotDone()){
             stop.update(0.0f);
             generator.changeDataAtTraining();
+            generatorCrossValidation.changeDataAtTraining();
             FloatMatrix trainingData = data.getData(generator);
             provider.setDataForTraining(trainingData);          
             rbm.train(provider, new StoppingCondition(baseInterval), learningRate);
