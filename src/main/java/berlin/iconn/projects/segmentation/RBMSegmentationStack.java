@@ -62,7 +62,7 @@ public class RBMSegmentationStack{
         }     
     }
     
-    public void trainRBM(IRBM rbm, SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){
+    public void trainRBM(IRBM rbm, SegmentationStackRandomBatchGenerator generator, SegmentationStackRandomBatchGenerator generatorCrossValidation, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){
         
         stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
         int allEpochs = stop.getMaxEpochs() * baseInterval;
@@ -76,7 +76,11 @@ public class RBMSegmentationStack{
             provider.setDataForTraining(trainingData);          
             rbm.train(provider, new StoppingCondition(baseInterval), learningRate);
             
+            FloatMatrix crossValidationData = data.getData(generatorCrossValidation);
+            
             float error = rbm.getError(trainingData.toArray2());
+            float errorCrossValidation = rbm.getError(crossValidationData.toArray2());
+            
             int epochs = stop.getCurrentEpochs() * baseInterval;
                        
             try {
@@ -85,16 +89,16 @@ public class RBMSegmentationStack{
                 System.err.println("Could not save weights");
                 Logger.getLogger(RBMSegmentationStack.class.getName()).log(Level.SEVERE, null, ex);
             }          
-            System.out.println(data.getName() + " -> error: " + error + "\tepochs: " + epochs + " / " + allEpochs);
+            System.out.println(data.getName() + " -> error: " + error + "\tCV error: " + errorCrossValidation + "\tepochs: " + epochs + " / " + allEpochs);
         }
     }
 
 
-    public void train(SegmentationStackRandomBatchGenerator generator, StoppingCondition stop, ILearningRate learningRate) {
-        trainRBM(labelRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new LabelData());
-        trainRBM(imageRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new ImageData());
-        trainRBM(combiRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new CombiData());
-        trainRBM(assocRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new AssocData());
+    public void train(SegmentationStackRandomBatchGenerator generator, SegmentationStackRandomBatchGenerator generatorCrossValidation, StoppingCondition stop, ILearningRate learningRate) {
+        trainRBM(labelRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new LabelData());
+        trainRBM(imageRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new ImageData());
+        trainRBM(combiRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new CombiData());
+        trainRBM(assocRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new AssocData());
     }
     
     public float[] reconstructLabel(float[] imagePatch, int numOfClasses){
