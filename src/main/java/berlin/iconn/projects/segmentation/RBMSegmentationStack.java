@@ -158,8 +158,6 @@ public class RBMSegmentationStack{
         //float[][] imageHidden = new float[1][labelOut];
         float[][] concatHidden = concat(labelHidden, imageHidden);
         float[][] combiHidden = combiRBM.getHidden(concatHidden);
-        System.out.println("combiHidden " + combiHidden[0].length);
-        System.out.println("assocRBM " + assocRBM.getWeights().length);
         float[][] assocHidden = assocRBM.getHidden(combiHidden);
         float[][] assocReconstruct = assocRBM.getVisible(assocHidden);
         float[][] combiReconstruct = combiRBM.getVisible(assocReconstruct);       

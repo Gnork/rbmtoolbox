@@ -42,20 +42,43 @@ public class RandomSiftFlowLoader {
         this.isRGB = isRGB;
     }
     
-    public void loadRandomImageAndLabels(float[][] imageDest, int[][] labelsDest){
-        int count = imageDest.length;
-        final File[] imageFiles = imagePath.listFiles((File dir, String name) -> (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif")));
-        final File[] labelFiles = labelPath.listFiles((File dir, String name) -> (name.endsWith("mat")));
+    public void loadRandomImagesAndLabels(float[][] imagesDest, int[][] labelsDest){
+        loadRandomImages(imagesDest);
+        loadRandomLabels(labelsDest);
+    }
+    
+    public void loadRandomImages(float[][] imagesDest){
+        long start = System.currentTimeMillis();
+        int count = imagesDest.length;
+        final File[] imageFiles = imagePath.listFiles((File dir, String name) -> (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif")));      
         int fileLen = imageFiles.length;
         int nextRandom;
         for(int i = 0; i < count; ++i){
             nextRandom = random.nextInt(fileLen);
             try {
-                imageDest[i] = DataConverter.processPixelData(ImageIO.read(imageFiles[nextRandom]), edgeLength, binarize, invert, minData, maxData, isRGB);
+                imagesDest[i] = DataConverter.processPixelData(ImageIO.read(imageFiles[nextRandom]), edgeLength, binarize, invert, minData, maxData, isRGB);
+            } catch (IOException ex) {
+                Logger.getLogger(RandomSiftFlowLoader.class.getName()).log(Level.SEVERE, null, ex);
+            }           
+        }
+        System.out.println(count + " images loaded in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
+    }
+    
+    public void loadRandomLabels(int[][] labelsDest){
+        long start = System.currentTimeMillis();
+        int count = labelsDest.length;
+        final File[] labelFiles = labelPath.listFiles((File dir, String name) -> (name.endsWith("mat")));
+        int fileLen = labelFiles.length;
+        int nextRandom;
+        for(int i = 0; i < count; ++i){
+            nextRandom = random.nextInt(fileLen);
+            try {
                 labelsDest[i] = InOutOperations.loadSiftFlowLabel(labelFiles[i]);
             } catch (IOException ex) {
                 Logger.getLogger(RandomSiftFlowLoader.class.getName()).log(Level.SEVERE, null, ex);
             }           
         }
-    }    
+        System.out.println(count + " labels loaded in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
+    }
 }
+

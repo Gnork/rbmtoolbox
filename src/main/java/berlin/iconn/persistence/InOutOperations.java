@@ -100,7 +100,8 @@ public class InOutOperations {
     }
     
     public static int[] loadSiftFlowLabel(File file) throws FileNotFoundException, IOException{
-        int[] result = new int[256 * 256];
+        int n = 256;
+        int[] result = new int[n * n];
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             for(int j = 0; j < 5; ++j){
                 br.readLine();
@@ -113,6 +114,18 @@ public class InOutOperations {
                     result[lineCount] = new Integer(line);
                 }
                 ++lineCount;
+            }
+        }
+        
+        // transpose
+        int index1, index2, temp;
+        for (int i = 0; i < n; i++){
+            for (int j = i + 1; j < n;  j++){
+               index1 = i * n + j;
+               index2 = j * n + i;
+               temp = result[index1];
+               result[index1] = result[index2];
+               result[index2] = temp;
             }
         }
         return result;

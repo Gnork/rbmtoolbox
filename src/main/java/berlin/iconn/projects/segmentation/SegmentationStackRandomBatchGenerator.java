@@ -44,7 +44,7 @@ public final class SegmentationStackRandomBatchGenerator{
         float[][] images = new float[batchCount][];
         int[][] labels = new int[batchCount][];
         
-        loader.loadRandomImageAndLabels(images, labels);
+        loader.loadRandomImagesAndLabels(images, labels);
         
         for (int i = 0; i < batchCount; i++) {
             int indexRow = random.nextInt(edgeLength - batchHeight);
