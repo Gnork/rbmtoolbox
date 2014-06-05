@@ -72,6 +72,7 @@ public class SimpleStack{
         while(stop.isNotDone()){
             stop.update(0.0f);
             FloatMatrix trainingData = data.getData(generator);
+
             provider = new SegmentationStackComponentProvider(trainingData);
             
             rbm.train(provider, new StoppingCondition(baseInterval), learningRate);

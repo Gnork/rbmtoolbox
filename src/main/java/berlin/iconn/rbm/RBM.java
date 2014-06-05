@@ -109,17 +109,7 @@ public class RBM  implements IRBM {
     }
 
 
-    public static void show(float[] data, int rows, int columns, String name)
-    {
-        System.out.println(name);
-        for (int i = 0; i < columns; i++) {
-            for (int j = 0; j < rows; j++) {
-                System.out.print(String.format("%.5f", data[i * rows + j]) + ", ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
+
 
     @Override
     public float getError(float[][] data) {

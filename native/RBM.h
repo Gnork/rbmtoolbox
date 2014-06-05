@@ -71,7 +71,7 @@ public:
 
 	void setWeights(float* weights, int weightsCols)
 	{
-		delete[] weights;
+		delete[] this->weights;
 		
 		this->weightsCols = weightsCols;
 		weightsLength = visibleCols * weightsCols;
@@ -342,7 +342,7 @@ private:
 			float diff = data[i] - visible[i];
 			error += diff * diff;
 		}
-		error = sqrtf(error) / dataLength;
+		error = sqrtf(error / (dataLength - visibleCols));
 
 		this->error = error;
 		//std::cout << error << std::endl;

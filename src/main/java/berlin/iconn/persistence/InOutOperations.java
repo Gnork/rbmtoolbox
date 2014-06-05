@@ -98,7 +98,11 @@ public class InOutOperations {
         }
         return result;
     }
-    
+
+    public static int[] loadSiftFlowLabel(String filePath)  throws FileNotFoundException, IOException {
+        return loadSiftFlowLabel(new File(filePath));
+    }
+
     public static int[] loadSiftFlowLabel(File file) throws FileNotFoundException, IOException{
         int n = 256;
         int[] result = new int[n * n];

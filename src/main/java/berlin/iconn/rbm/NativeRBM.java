@@ -4,6 +4,7 @@ import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
 import berlin.iconn.rbm.learningRate.ILearningRate;
 import org.jblas.FloatMatrix;
+import org.jblas.MatrixFunctions;
 
 /**
  * Created by Moritz on 5/27/2014.
@@ -12,6 +13,7 @@ public class NativeRBM implements IRBM {
     static {
         System.loadLibrary("CNativeRBM");
     }
+
     private FloatMatrix weights;
     private boolean binarize;
 
@@ -28,6 +30,8 @@ public class NativeRBM implements IRBM {
         this.binarize = binarize;
 
         this.getVisibleFunction = this.getHiddenFunction = new GetStatesFunction();
+
+
     }
 
     @Override
@@ -36,16 +40,16 @@ public class NativeRBM implements IRBM {
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
         float[] mean = dataProvider.getMeanVector().toArray();
         createNativeRBM(
-            weights.toArray(), weights.getColumns(),
-            data.toArray(), data.rows, data.columns, mean,
-            learningRate.getRate(), Runtime.getRuntime().availableProcessors());
-        {
+                weights.toArray(), weights.getColumns(),
+                data.toArray(), data.rows, data.columns, mean,
+                learningRate.getRate(), Runtime.getRuntime().availableProcessors());
+
             float error = 1.0f;
-            while(stop.isNotDone()) {
+            while (stop.isNotDone()) {
                 learningRate.changeRate(error);
                 setNativeLearningRate(learningRate.getRate());
 
-                if(binarize) {
+                if (binarize) {
                     trainNativeBinarizedWithError();
                 } else {
                     trainNativeWithError();
@@ -58,23 +62,21 @@ public class NativeRBM implements IRBM {
 
                 error = getNativeError();
                 stop.update(error);
-            }
-        }
 
+            }
         weights.data = getNativeWeights();
         deleteNativeRBM();
 
     }
-    
-    public void fastTrain(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate)
-    {
+
+    public void fastTrain(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate) {
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
         float[] mean = dataProvider.getMeanVector().data;
         createNativeRBM(
                 weights.data, weights.getColumns(),
                 data.data, data.rows, data.columns, mean,
                 learningRate.getRate(), Runtime.getRuntime().availableProcessors());
-        if(binarize) {
+        if (binarize) {
             for (int i = 0; i < epochs; i++) {
                 setNativeLearningRate(learningRate.getRate());
                 trainNativeBinarizedWithoutError();
@@ -86,7 +88,7 @@ public class NativeRBM implements IRBM {
             }
         }
 
-         weights.data = getNativeWeights();
+        weights.data = getNativeWeights();
 
         deleteNativeRBM();
     }
@@ -105,7 +107,15 @@ public class NativeRBM implements IRBM {
 
     @Override
     public float getError(float[][] data) {
-        return 0;
+        return getError(new FullTrainingDataProvider(new FloatMatrix(data)));
+    }
+
+    public float getError(ATrainingDataProvider data) {
+        FloatMatrix dataWithBias = data.getDataWithBias();
+        FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
+        FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose()).subColumnVector(data.getMeanVector());
+
+        return (float) Math.sqrt(MatrixFunctions.pow(dataWithBias.sub(visible), 2.0f).sum() / data.getData().length / weights.getRows());
     }
 
     @Override
@@ -137,12 +147,20 @@ public class NativeRBM implements IRBM {
     private native void deleteNativeRBM();
 
     private native void trainNativeWithoutError();
+
     private native void trainNativeWithError();
+
     private native void trainNativeBinarizedWithoutError();
+
     private native void trainNativeBinarizedWithError();
+
     private native float[] getNativeWeights();
+
     private native float getNativeError();
+
     private native void setNativeWeights(float[] weights, int weightsCols);
+
     private native void setNativeData(float[] data, int dataRows, int dataCols, float[] mean);
+
     private native void setNativeLearningRate(float learningRate);
 }

@@ -59,7 +59,19 @@ public class RBMSegmentationStack{
             imageRBM = new RBM(imageWeights);
             combiRBM = new RBM(combiWeights);
             assocRBM = new RBM(assocWeights);
-        }     
+        }
+
+//        if(binarizeHidden){
+//            labelRBM = new NativeRBM(labelWeights, true);
+//            imageRBM = new NativeRBM(imageWeights, true);
+//            combiRBM = new NativeRBM(combiWeights, true);
+//            assocRBM = new NativeRBM(assocWeights, true);
+//        }else{
+//            labelRBM = new NativeRBM(labelWeights);
+//            imageRBM = new NativeRBM(imageWeights);
+//            combiRBM = new NativeRBM(combiWeights);
+//            assocRBM = new NativeRBM(assocWeights);
+//        }
     }
     
     public void trainRBM(IRBM rbm, SegmentationStackRandomBatchGenerator generator, SegmentationStackRandomBatchGenerator generatorCrossValidation, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){

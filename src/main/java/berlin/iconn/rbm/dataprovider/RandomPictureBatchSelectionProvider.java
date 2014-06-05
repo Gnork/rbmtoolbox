@@ -22,7 +22,9 @@ public class RandomPictureBatchSelectionProvider extends ATrainingDataProvider {
         this.batchCount = batchCount;
         random.setSeed(seed);
         changeDataAtTraining();
-    }public RandomPictureBatchSelectionProvider(FloatMatrix[] pictures, int batchCount, int batchWidth, int batchHeight) {
+    }
+
+    public RandomPictureBatchSelectionProvider(FloatMatrix[] pictures, int batchCount, int batchWidth, int batchHeight) {
         super(new float[][]{{1}});
         this.pictures = pictures;
         this.batchWidth = batchWidth;
@@ -56,7 +58,7 @@ public class RandomPictureBatchSelectionProvider extends ATrainingDataProvider {
                     new IntervalRange(indexColumn, indexColumn + batchWidth)).toArray();
         }
         FloatMatrix newBatches = new FloatMatrix(newData);
-        FloatMatrix meanVector = newBatches.rowMeans();
+        FloatMatrix meanVector =  newBatches.rowMeans();
         setMeanVector(meanVector);
         setData(newBatches.subColumnVector(meanVector));
     }

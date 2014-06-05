@@ -25,7 +25,7 @@ public class ScanPicture extends JComponent implements IVisualizeObserver {
         this.rbmEdgeLength = rbmEdgeLength;
         this.pictureWidth = rbmEdgeLength * (int) Math.ceil(data.getColumns() / (double) rbmEdgeLength);
         this.pictureHeight = rbmEdgeLength * (int) Math.ceil(data.getRows() / (double) rbmEdgeLength);
-        this.originalData = resizeBiLinear(data, pictureWidth, pictureHeight);
+        this.originalData = new FloatMatrix(resizeBiLinear(data.toArray2(), pictureWidth, pictureHeight));
         this.originalImage = dataToImage(this.originalData);
     }
 
@@ -53,31 +53,29 @@ public class ScanPicture extends JComponent implements IVisualizeObserver {
         return result;
     }
 
-    private FloatMatrix resizeBiLinear(FloatMatrix m, int newWidth, int newHeight) {
-        float[][] original = m.toArray2();
-        float[][] result =  new float[newHeight][newWidth];
-        double hResize = (m.getRows() - 1) / (newHeight - 1);
-        double wResize = (m.getRows() - 1) / (newHeight - 1);
 
-        for (int i = 0; i < newHeight - 1; i++) {
+    private static float[][] resizeBiLinear(float[][] data, int newWidth, int newHeight) {
 
-            double indexH = i * hResize;
-            final int floorH = (int)indexH;
-            final int ceilH = floorH + 1;
-            final double tH = indexH - floorH;
+        float[][] temp = new float[newHeight][newWidth] ;
+        int x, y, index;
+        final double wRatio = ((double)(data[0].length - 1)) / newWidth ;
+        final double hRatio = ((double)(data.length - 1)) / newHeight ;
+        double tWidth, tHeight;
+        for (int i = 0; i < newHeight; i++) {
+            y = (int)(hRatio * i);
+            tHeight = (hRatio * i) - y;
+            double tHeightMinusOne = 1 - tHeight;
 
-            for (int j = 0; j < newWidth - 1; j++) {
-                final double indexW = j * wResize;
-                final int floorW = (int)indexW;
-                final int ceilW = floorW + 1;
-                final double tW = indexW - floorW;
-                final double minOneTW = 1.0 - tW;
-                result[i][j] = (float)(
-                        (original[floorH][floorW] * minOneTW + original[floorH][ceilW] * tW) * (1.0 - tH) +
-                        (original[ceilH] [floorW] * minOneTW + original[ceilH] [ceilW] * tW) * tH);
+            for (int j = 0; j < newWidth; j++) {
+                x = (int)(wRatio * j);
+                tWidth = (wRatio * j) - x ;
+                double tWidthMinusOne = 1 - tWidth;
+                temp[i][j] = (float)(
+                        data[y][x] * tWidthMinusOne * tHeightMinusOne +  data[y][x + 1] * tWidth * tHeightMinusOne +
+                                data[y + 1][x] * tHeight * tWidthMinusOne   +  data[y + 1][x + 1] * tWidth * tHeight);
             }
         }
-        return new FloatMatrix(result);
+        return temp;
     }
     @Override
     public void update(RBMInfoPackage pack) {
@@ -112,7 +110,7 @@ public class ScanPicture extends JComponent implements IVisualizeObserver {
             BufferedImage recon = dataToImage(result);
             g.drawImage(recon,0 , 0, 600, 600, null);
             g.setColor(Color.white);
-//            g.drawString("Error: " + info.getError() * 255, 650, 20);
+            g.drawString("Error: " + info.getError() * 255, 650, 20);
             g.drawString("Epochs: " + info.getEpochs(), 650, 40);
             g.drawString("Features: " + weights.getColumns(), 650, 60);
         }

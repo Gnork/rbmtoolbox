@@ -52,13 +52,13 @@ public class MainTraining {
         RandomSiftFlowLoader loader = new RandomSiftFlowLoader(new File(images), new File(siftFlowLabels), edgeLength, binarize, invert, minData, maxData, isRGB);
         RandomSiftFlowLoader loaderCrossValidation = new RandomSiftFlowLoader(new File(imagesCrossValidation), new File(siftFlowLabelsCrossValidation), edgeLength, binarize, invert, minData, maxData, isRGB);
         
-        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, 250, isRGB);
-        SegmentationStackRandomBatchGenerator providerCrossValidation = new SegmentationStackRandomBatchGenerator(loaderCrossValidation, edgeLength, classes, batchOffset, batchOffset, 1000, 250, isRGB);
+        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, 750, isRGB);
+        SegmentationStackRandomBatchGenerator providerCrossValidation = new SegmentationStackRandomBatchGenerator(loaderCrossValidation, edgeLength, classes, batchOffset, batchOffset, 1000, 750, isRGB);
         
-        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 30, 30, 30, 0.01f, true);
+        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 400, 100, 30, 0.01f, true);
         
         System.out.println("start training");
         
-        stack.train(provider, providerCrossValidation, new StoppingCondition(1000), new ConstantLearningRate(0.1f));
+        stack.train(provider, providerCrossValidation, new StoppingCondition(100000), new ConstantLearningRate(0.2f));
     }
 }

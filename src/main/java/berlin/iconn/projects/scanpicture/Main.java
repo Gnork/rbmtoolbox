@@ -11,6 +11,7 @@ import berlin.iconn.rbm.weightmodifier.GrowingModifier;
 import org.jblas.FloatMatrix;
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,10 +29,10 @@ public class Main {
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String images = "Data/Pictures";
+    private static final String images = "Data/RGB_R02_0600x0600";
     public static void main(String[] args) {
 
-        int rbmEdgeLength = 8;
+        int rbmEdgeLength = 32;
         DataSet[] trainingDataSet;
         try {
             trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
@@ -42,8 +43,10 @@ public class Main {
         final float[][] trainingData = DataConverter.dataSetToArray(trainingDataSet);
 
        // RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * 4, 0.01f)));
-        RBMEnhancer enhancer = new RBMEnhancer(new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * rbmEdgeLength , 0.01f),false));
-        ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[0]), rbmEdgeLength);
+        RBMEnhancer enhancer = new RBMEnhancer(
+                new NativeRBM(
+                        WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * rbmEdgeLength * 2, 0.01f), false));
+        ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[new Random().nextInt(trainingData.length)]), rbmEdgeLength);
         new Frame(picture);
 
         enhancer.addEnhancement(new TrainingVisualizer(1,picture));
@@ -54,8 +57,8 @@ public class Main {
             batchSelectionData[i] = new FloatMatrix(edgeLength, edgeLength, trainingData[i]);
         }
 
-        enhancer.train(new RandomPictureBatchSelectionProvider( batchSelectionData, 100, rbmEdgeLength, rbmEdgeLength ),
+        enhancer.train(new RandomPictureBatchSelectionProvider( batchSelectionData, 1000, rbmEdgeLength, rbmEdgeLength ),
                 new StoppingCondition(1000000),
-                new ConstantLearningRate(0.01f));
+                new ConstantLearningRate(0.1f));
     }
 }
