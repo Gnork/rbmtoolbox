@@ -35,7 +35,7 @@ public class MainSegmentation {
     private static final String imageFile = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
     private static final String labelFile = "Data/SiftFlowDataset/SemanticLabels/labels/highway_urb713.mat";
     private static final String siftFlowClassesPath = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
-    private static final String dateString = "2014_06_05_10_59_07";
+    private static final String dateString = "2014_06_03_00_49_22";
     
     public static void main(String[] args) {
         String imageWeightsFile = "Output/SimpleWeights/" + dateString + "_image.dat";

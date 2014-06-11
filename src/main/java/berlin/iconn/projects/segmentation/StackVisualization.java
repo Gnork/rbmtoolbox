@@ -13,6 +13,7 @@ import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import javax.swing.*;
 
 /**
@@ -85,6 +86,7 @@ public class StackVisualization extends JComponent implements MouseListener {
         this.isRGB = isRGB;
         this.batchOffset = batchOffset;
 
+
         this.setPreferredSize(new Dimension(compWidth, compHeight));
         this.setLayout(new GridLayout(1, 2));
 
@@ -107,10 +109,6 @@ public class StackVisualization extends JComponent implements MouseListener {
         for (int c = 0; c < classes.length; c++) {
             itable.addRow(classes[c], colors[c], 0.0f);
         }
-        /*
-        itable.setValueAt(23, 0, 2);
-        itable.setValueAt(23, 0, 3);
-        */
         this.add(itable);
 
         this.repaint();
@@ -126,6 +124,7 @@ public class StackVisualization extends JComponent implements MouseListener {
         int[] tmpImage = new int[originalImage.length / 3];
 
 
+        System.out.println(Arrays.toString(classes));
         for (int j = batchOffset; j < imageWidth - batchOffset; j++) {
             for (int i = batchOffset; i < imageHeight - batchOffset; i++) {
 
@@ -153,7 +152,6 @@ public class StackVisualization extends JComponent implements MouseListener {
                 String maxClass = "";
                 float maxValue = 0.0f;
                 int classLabel = 0;
-
                 for (int c = 0; c < classes.length; c++) {
                     if (labelReconstruct[c] > maxValue) {
                         maxValue = labelReconstruct[c];
@@ -172,7 +170,7 @@ public class StackVisualization extends JComponent implements MouseListener {
         float[] tmpImage = new float[im.length * 3];
 
         int t = 0;
-        for (int i = 0; i < im.length * 3; i += 3) {
+        for (int i = 0; i < tmpImage.length - 3; i += 3) {
             int m = im[t];
             tmpImage[i] = colors[m].nr;
             tmpImage[i + 1] = colors[m].ng;
