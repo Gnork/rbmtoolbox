@@ -72,7 +72,7 @@ public class StackVisualization extends JComponent implements MouseListener {
             new RGB(0xFFFF5F),
             new RGB(0xFF73C7),
             new RGB(0xFFC979),
-            new RGB()
+            new RGB(0x222222)
     };
     InteractiveKeyVisualisation itable;
 
@@ -159,7 +159,7 @@ public class StackVisualization extends JComponent implements MouseListener {
                         classLabel = c;
                     }
                 }
-                tmpImage[i + j * imageWidth] = classLabel;
+                tmpImage[i + j * imageWidth] = classLabel + 1;
                 //System.out.println(maxClass + ": " + maxValue);
             }
         }
@@ -168,10 +168,15 @@ public class StackVisualization extends JComponent implements MouseListener {
 
     private float[] labelDataToImage(int[] im) {
         float[] tmpImage = new float[im.length * 3];
+        System.out.println("test");
 
         int t = 0;
         for (int i = 0; i < tmpImage.length - 3; i += 3) {
-            int m = im[t];
+            int m = (im[t] - 1);
+
+            if (m < 0)
+                m = colors.length - 1;
+
             tmpImage[i] = colors[m].nr;
             tmpImage[i + 1] = colors[m].ng;
             tmpImage[i + 2] = colors[m].nb;
@@ -214,7 +219,7 @@ public class StackVisualization extends JComponent implements MouseListener {
 
         for (int c = 0; c < classes.length; c++) {
             updateRow(c, labelReconstruct[c]);
-           // System.out.println(c + ": " + labelReconstruct[c]);
+            // System.out.println(c + ": " + labelReconstruct[c]);
             //
             //
             if (labelReconstruct[c] > maxValue) {
