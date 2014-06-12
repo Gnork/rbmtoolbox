@@ -42,62 +42,68 @@ public class Main {
 
 
         //Arrays.asList(classes).stream().forEach(System.out::println);
-      // new Frame(new ShowImage(labels, image, pictureSize, pictureSize));
 
         FloatMatrix[] data = SegmentationDataConverter.createTrainingData(labels, image, pictureSize, pictureSize, 5, classLength);
 
         final FloatMatrix labelMatrix = data[0];
         final FloatMatrix imagePatchMatrix = data[1];
+
         NativeRBM rbmLabel = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(labelMatrix.columns, labelMatrix.columns, 0.01f));
         NativeRBM rbmImage = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 120, 0.01f));
         NativeRBM rbmCombination = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 60, 0.01f));
         NativeRBM rbmAssociation = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 60, 0.01f));
 
+         new Frame(new ShowImage(labels, image, pictureSize, pictureSize,
+        rbmLabel,
+        rbmImage,
+        rbmCombination,
+        rbmAssociation,
+                 classLength));
 
-        FullTrainingDataProvider labelData = new FullTrainingDataProvider(labelMatrix, FloatMatrix.zeros(labelMatrix.rows, 1));
-        System.out.println("Train Labels: " +  rbmLabel.getWeights().length + "  " + rbmLabel.getWeights()[0].length);
-        rbmLabel.fastTrain(labelData, 1000, new ConstantLearningRate(0.01f));
-        try {
-            InOutOperations.saveSimpleWeights(rbmLabel.getWeights(), date, "label");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        FullTrainingDataProvider imageData = new FullTrainingDataProvider(imagePatchMatrix);
-        System.out.println("Train Imagepatches: " +  rbmImage.getWeights().length + "  " + rbmImage.getWeights()[0].length);
-        rbmImage.fastTrain(imageData, 10000, new ConstantLearningRate(0.01f));
-        try {
-            InOutOperations.saveSimpleWeights(rbmImage.getWeights(), date, "image");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        float[][] hiddenLabels = rbmLabel.getHidden(labelMatrix.toArray2());
-        float[][] hiddenImagePatches = rbmImage.getHidden(imagePatchMatrix.toArray2());
-        FloatMatrix combinationMatrix = FloatMatrix.concatHorizontally(new FloatMatrix(hiddenLabels), new FloatMatrix(hiddenImagePatches));
-        FullTrainingDataProvider combinationData = new FullTrainingDataProvider(combinationMatrix);
-
-        System.out.println("Train Combination: " +  rbmCombination.getWeights().length + "  " + rbmCombination.getWeights()[0].length);
-        rbmCombination.fastTrain(combinationData, 10000, new ConstantLearningRate(0.01f));
-        try {
-            InOutOperations.saveSimpleWeights(rbmCombination.getWeights(), date, "combi");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        float[][] hiddenCombination = rbmCombination.getHidden(combinationMatrix.toArray2());
-        FloatMatrix associationMatrix = new FloatMatrix(hiddenCombination);
-        FullTrainingDataProvider associationData = new FullTrainingDataProvider(associationMatrix);
-
-        System.out.println("Train Association: " +  rbmAssociation.getWeights().length + "  " + rbmAssociation.getWeights()[0].length);
-        rbmAssociation.fastTrain(associationData, 10000, new ConstantLearningRate(0.01f));
-        try {
-            InOutOperations.saveSimpleWeights(rbmCombination.getWeights(), date, "assoc");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        FullTrainingDataProvider labelData = new FullTrainingDataProvider(labelMatrix, FloatMatrix.zeros(labelMatrix.rows, 1));
+//        System.out.println("Train Labels: " +  rbmLabel.getWeights().length + "  " + rbmLabel.getWeights()[0].length);
+//        rbmLabel.fastTrain(labelData, 1000, new ConstantLearningRate(0.01f));
+//        try {
+//            InOutOperations.saveSimpleWeights(rbmLabel.getWeights(), date, "label");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        FullTrainingDataProvider imageData = new FullTrainingDataProvider(imagePatchMatrix);
+//        System.out.println("Train Imagepatches: " +  rbmImage.getWeights().length + "  " + rbmImage.getWeights()[0].length);
+//        rbmImage.fastTrain(imageData, 10000, new ConstantLearningRate(0.01f));
+//        try {
+//            InOutOperations.saveSimpleWeights(rbmImage.getWeights(), date, "image");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        float[][] hiddenLabels = rbmLabel.getHidden(labelMatrix.toArray2());
+//        float[][] hiddenImagePatches = rbmImage.getHidden(imagePatchMatrix.toArray2());
+//        FloatMatrix combinationMatrix = FloatMatrix.concatHorizontally(new FloatMatrix(hiddenLabels), new FloatMatrix(hiddenImagePatches));
+//        FullTrainingDataProvider combinationData = new FullTrainingDataProvider(combinationMatrix);
+//
+//        System.out.println("Train Combination: " +  rbmCombination.getWeights().length + "  " + rbmCombination.getWeights()[0].length);
+//        rbmCombination.fastTrain(combinationData, 10000, new ConstantLearningRate(0.01f));
+//        try {
+//            InOutOperations.saveSimpleWeights(rbmCombination.getWeights(), date, "combi");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        float[][] hiddenCombination = rbmCombination.getHidden(combinationMatrix.toArray2());
+//        FloatMatrix associationMatrix = new FloatMatrix(hiddenCombination);
+//        FullTrainingDataProvider associationData = new FullTrainingDataProvider(associationMatrix);
+//
+//        System.out.println("Train Association: " +  rbmAssociation.getWeights().length + "  " + rbmAssociation.getWeights()[0].length);
+//        rbmAssociation.fastTrain(associationData, 10000, new ConstantLearningRate(0.01f));
+//        try {
+//            InOutOperations.saveSimpleWeights(rbmCombination.getWeights(), date, "assoc");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
 

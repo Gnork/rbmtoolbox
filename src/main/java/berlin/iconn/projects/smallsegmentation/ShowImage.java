@@ -16,8 +16,8 @@ import java.util.Random;
 public class ShowImage extends JComponent {
 
     private static final HashMap<Integer, Integer> colorLabelMap = generateTable();
-    private final int[] labelimage;
-    private final float[] image;
+    private final FloatMatrix labelMatrix;
+    private final FloatMatrix imagePatchMatrix;
     private final int width, height;
     private final Dimension dim = new Dimension(800, 600);
     private final IRBM rbmLabels;
@@ -42,19 +42,27 @@ public class ShowImage extends JComponent {
         this.rbmImages = rbmImages;
         this.rbmCombination = rbmCombination;
         this.rbmAssociation = rbmAssociation;
-        this.image = image;
-        this.labelimage = labelimage;
+
         this.classLength = classLength;
-        this.bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        FloatMatrix[] data = SegmentationDataConverter.createTrainingData(labelimage, image, width, height, 5, classLength);
+
+        this.labelMatrix = data[0];
+        this.imagePatchMatrix = data[1];
+
         this.bufferedLabels = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        bufferedImage.setRGB(0, 0, width, height, getPixelsOfImage(image), 0, width);
-        bufferedLabels.setRGB(0, 0, width, height, getPixelsOfLabels(labelimage), 0, width);
+
+        this.bufferedImage = SegmentationDataConverter.getImageData(imagePatchMatrix.toArray2(), width, height, 5);
+
+
+        final int[] labelData = SegmentationDataConverter.getLabelData(labelMatrix.toArray2(), width, height, 5);
+        final int[] pixelsOfLabels = getPixelsOfLabels(labelData);
+        bufferedLabels.setRGB(0,0, width,height, pixelsOfLabels, 0, width);
     }
 
     private static HashMap<Integer, Integer> generateTable() {
         HashMap<Integer, Integer> result = new HashMap<>();
         Random random = new Random();
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 128; i++) {
             int r = random.nextInt(16);
             int g = random.nextInt(16);
             int b = random.nextInt(16);
@@ -105,9 +113,9 @@ public class ShowImage extends JComponent {
     @Override
     public void paint(Graphics graphics) {
 
-        if(labelimage != null || image != null) {
             graphics.drawImage(bufferedImage,0,0,null);
             graphics.drawImage(bufferedLabels, width,0, null);
-        }
+
     }
+
 }
