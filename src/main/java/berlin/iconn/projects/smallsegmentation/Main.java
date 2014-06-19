@@ -1,5 +1,6 @@
 package berlin.iconn.projects.smallsegmentation;
 
+import berlin.iconn.matrixExperiments.PlaygroundRBM;
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.*;
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
@@ -54,16 +55,16 @@ public class Main {
 
 
         //Arrays.asList(classes).stream().forEach(System.out::println);
-        int patchSize = 3;
+        int patchSize = 16;
         FloatMatrix[] data = SegmentationDataConverter.createTrainingData(labels, image, pictureSize, pictureSize, patchSize, classLength);
 
         final FloatMatrix labelMatrix = data[0];
         final FloatMatrix imagePatchMatrix = data[1];
 
-        NativeRBM rbmLabel = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
-        NativeRBM rbmImage = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 100, 0.01f));
-        NativeRBM rbmCombination = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 100, 0.01f));
-        NativeRBM rbmAssociation = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 60, 0.01f));
+        IRBM rbmLabel = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
+        IRBM rbmImage = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 800, 0.01f));
+        IRBM rbmCombination = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 500, 0.01f));
+        IRBM rbmAssociation = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 60, 0.01f));
         ShowSegmentation visu = new ShowSegmentation(labels, image, pictureSize, pictureSize,
                 rbmLabel,
                 rbmImage,
@@ -88,7 +89,7 @@ public class Main {
         System.out.println("Train Imagepatches: " +  rbmImage.getWeights().length + "  " + rbmImage.getWeights()[0].length);
         enhancer = new RBMEnhancer(rbmImage);
         enhancer.addEnhancement(new TrainingVisualizer(1, visu));
-        enhancer.train(imageData, new StoppingCondition(1_000_000), new ConstantLearningRate(0.01f));
+        enhancer.train(imageData, new StoppingCondition(300_000), new ConstantLearningRate(0.01f));
         try {
             InOutOperations.saveSimpleWeights(rbmImage.getWeights(), date, "image");
         } catch (IOException e) {

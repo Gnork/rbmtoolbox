@@ -62,7 +62,7 @@ public class SegmentationDataConverter {
                         int g = (int) (data[dataPos][patchPos] * 255);
                         patchPos++;
                         int b = (int) (data[dataPos][patchPos] * 255);
-                        int pos = (i + k + low) * width + j + a + low;
+                        int pos = (i + k) * width + j + a;
                         result[pos] = (r << 16) | (g << 8) | b;
                     }
                 }
