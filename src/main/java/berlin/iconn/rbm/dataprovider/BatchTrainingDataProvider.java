@@ -9,7 +9,6 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
 
     private final FloatMatrix[] dataWithBiasBatches;
     private final FloatMatrix[] transDataWithBiasBatches;
-    private final FloatMatrix[] meanVectors;
     private int batchIndex = 0;
 
     public BatchTrainingDataProvider(FloatMatrix data, int batchCount) {
@@ -17,7 +16,6 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
 
         dataWithBiasBatches = new FloatMatrix[batchCount];
         transDataWithBiasBatches = new FloatMatrix[batchCount];
-        meanVectors = new FloatMatrix[batchCount];
 
         final int range = data.getRows() / batchCount;
         final int threshold = data.getRows() % batchCount;
@@ -26,7 +24,6 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
             final int end = start + range + (i < threshold ? 1 : 0);
             dataWithBiasBatches[i] = putBiasOnData(getData().getRange(start, end, 0, getData().columns));
             transDataWithBiasBatches[i] = dataWithBiasBatches[i].transpose();
-            meanVectors[i] = getMeanVector().getRange(start, end, 0, getMeanVector().columns);
         }
     }
 
@@ -45,13 +42,8 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
     }
 
     @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return meanVectors[batchIndex];
-    }
-
-    @Override
     public void changeDataAtTraining() {
         batchIndex++;
-        if(batchIndex >= meanVectors.length) batchIndex = 0;
+        if(batchIndex >= dataWithBiasBatches.length) batchIndex = 0;
     }
 }

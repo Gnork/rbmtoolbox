@@ -25,15 +25,13 @@ jint threads)
 {
 
 	float* dataBody = env->GetFloatArrayElements(data, false);
-	float* meanBody = env->GetFloatArrayElements(mean, false);
 	float* weightsBody = env->GetFloatArrayElements(weights, false);
 	rbm = new RBM(
 		weightsBody, weightsCols,
 		dataBody, dataRows, dataCols, 
-		meanBody, learningRate, threads);
+		learningRate, threads);
 	env->ReleaseFloatArrayElements(weights, weightsBody, 0);
 	env->ReleaseFloatArrayElements(data, dataBody, 0);
-	env->ReleaseFloatArrayElements(mean, meanBody, 0);
 
 	//for (int i = 0; i < weightsCols; i++)
 	//{
@@ -160,10 +158,8 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeData
 {
 
 	float* dataBody = env->GetFloatArrayElements(data, false);
-	float* meanBody = env->GetFloatArrayElements(mean, false);
-	rbm->setData(dataBody, meanBody, dataRows, dataCols);
+	rbm->setData(dataBody, dataRows, dataCols);
 	env->ReleaseFloatArrayElements(data, dataBody, 0);
-	env->ReleaseFloatArrayElements(mean, meanBody, 0);
 }
 
 /*

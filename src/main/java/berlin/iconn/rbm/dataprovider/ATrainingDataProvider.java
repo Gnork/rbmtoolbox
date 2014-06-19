@@ -9,19 +9,14 @@ public abstract class ATrainingDataProvider {
 
     private FloatMatrix data;
     private FloatMatrix transData;
-    private FloatMatrix meanVector;
     private FloatMatrix dataWithBias;
     private FloatMatrix transDataWithBias;
 
     public ATrainingDataProvider(FloatMatrix data) {
-
-        setMeanVector(data.rowMeans());
-        //setMeanVector(FloatMatrix.zeros(data.getRows(), 1));
-        this.setData(data.subColumnVector(meanVector));
+        this.setData(data);
     }
     public ATrainingDataProvider(FloatMatrix data, FloatMatrix meanVector) {
 
-        setMeanVector(meanVector);
         this.setData(data.subColumnVector(meanVector));
     }
 
@@ -29,9 +24,6 @@ public abstract class ATrainingDataProvider {
         this(new FloatMatrix(data));
     }
 
-    public FloatMatrix getMeanVector() {
-        return meanVector;
-    }
 
     public FloatMatrix getData() {
         return data;
@@ -65,10 +57,6 @@ public abstract class ATrainingDataProvider {
         this.transData = transData;
     }
 
-    protected void setMeanVector(FloatMatrix meanVector) {
-        this.meanVector = meanVector;
-    }
-
     protected void setDataWithBias(FloatMatrix dataWithBias) {
         this.dataWithBias = dataWithBias;
     }
@@ -82,8 +70,6 @@ public abstract class ATrainingDataProvider {
     public abstract FloatMatrix getTransposedDataWithBiasForTraining();
 
     public abstract void changeDataAtTraining();
-
-    public abstract FloatMatrix getMeanVectorForTraining();
 
     protected FloatMatrix putBiasOnData(FloatMatrix data) {
         return FloatMatrix.concatHorizontally(FloatMatrix.ones(data.getRows(), 1), data);

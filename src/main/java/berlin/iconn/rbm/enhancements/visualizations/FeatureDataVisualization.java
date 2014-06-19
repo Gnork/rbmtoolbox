@@ -155,10 +155,10 @@ public class FeatureDataVisualization extends JComponent implements IVisualizeOb
             red = 0;
             green =0;
             if(weight[i] < 0) {
-                green = -(int)(255 * weight[i] * 0.3f);
+                green = -(int)(255 * weight[i] * 1.0f);
                 if(green > 255) green = 255;
             } else {
-                red = (int)(255 * weight[i]  * 0.3f);
+                red = (int)(255 * weight[i]  * 1.0f);
                 if(red > 255) red = 255;
             }
             result[i] = 0xFF000000 | red << 16 | green << 8;

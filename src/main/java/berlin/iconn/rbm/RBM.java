@@ -14,7 +14,7 @@ import org.jblas.MatrixFunctions;
  * Created by Moritz on 4/27/2014.
  */
 public class RBM  implements IRBM {
-    private FloatMatrix weights;
+    protected FloatMatrix weights;
     private final GetStatesFunction getHiddenFunction;
     private final GetStatesFunction getVisibleFunction;
     private final IWeightsModifier modifier;
@@ -37,33 +37,31 @@ public class RBM  implements IRBM {
     }
 
     private void updateWeights(ATrainingDataProvider dataProvider, ILearningRate learningRate) {
-        final FloatMatrix meanVector = dataProvider.getMeanVectorForTraining();
         final FloatMatrix dataWithBias = dataProvider.getDataWithBiasForTraining();
         final FloatMatrix dataWithBiasTrans = dataProvider.getTransposedDataWithBiasForTraining();
 
-//        show(weights.data, weights.rows, weights.columns, "weights");
-//        show(dataWithBias.data, dataWithBias.rows, dataWithBias.columns, "data");
+//        Main.print(weights.toArray2(), "weights");
+//        Main.print(dataWithBias.toArray2(), "data");
         // first associations
         FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
-//        show(hidden.data, hidden.rows, hidden.columns, "hidden");
+//        Main.print(hidden.toArray2(), "hidden");
 
         final FloatMatrix positiveAssociations = new FloatMatrix(dataWithBiasTrans.rows, hidden.columns);
         ForkBlas.pmmuli(dataWithBiasTrans, hidden, positiveAssociations);
-//        show(positiveAssociations.data, positiveAssociations.rows, positiveAssociations.columns, "positive");
+//        Main.print(positiveAssociations.toArray2(), "positive");
 
         // guessed Data
         FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose());
-        visible.subiColumnVector(meanVector);
         visible.putColumn(0, FloatMatrix.ones(visible.getRows(), 1));
-//        show(visible.data, dataWithBias.rows, dataWithBias.columns, "data");
+//        Main.print(visible.toArray2(), "visible");
 
         // second associations
         hidden = getHiddenFunction.get(visible, weights);
-//        show(hidden.data, hidden.rows, hidden.columns, "hidden 2");
+//        Main.print(hidden.toArray2(), "hidden 2");
 
         final FloatMatrix negativeAssociations = new FloatMatrix(dataWithBiasTrans.rows, hidden.columns);
         ForkBlas.pmmuli(visible.transpose(), hidden, negativeAssociations);
-//        show(negativeAssociations.data, positiveAssociations.rows, positiveAssociations.columns, "negative");
+//        Main.print(negativeAssociations.toArray2(), "negative");
 
         // contrastive divergence on weights // update
         weights.addi((positiveAssociations.sub(negativeAssociations))
@@ -85,7 +83,7 @@ public class RBM  implements IRBM {
     public float getError(ATrainingDataProvider data) {
         FloatMatrix dataWithBias = data.getDataWithBias();
         FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
-        FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose()).subColumnVector(data.getMeanVector());
+        FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose());
 
         return (float) Math.sqrt(MatrixFunctions.pow(dataWithBias.sub(visible), 2.0f).sum() / data.getData().length / weights.getRows());
     }

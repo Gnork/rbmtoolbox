@@ -89,14 +89,9 @@ public final class SegmentationRandomBatchProvider extends ATrainingDataProvider
         }
         FloatMatrix newBatches = new FloatMatrix(result);
         setData(newBatches);
-        setMeanVector(FloatMatrix.zeros(batchCount, 1));
     }
 
-    @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return getMeanVector();
-    }
-    
+
     public static float[] concatArrays(float[] ... arrays){
         int size = 0, count = 0;
         for(float[] a : arrays) size += a.length;

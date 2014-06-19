@@ -59,7 +59,7 @@ public class NativeMain {
 
             float[][] part = parts[i];
             final ConstantLearningRate learningRate = new ConstantLearningRate(0.01f);
-            final FullTrainingDataProvider data = new FullTrainingDataProvider(new FloatMatrix(part), getMean.getMeanVectorForTraining());
+            final FullTrainingDataProvider data = new FullTrainingDataProvider(new FloatMatrix(part));
             final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, 100, 0.01f, 1337);
             System.out.println("Start: " + i);
             NativeRBM rbm = new NativeRBM(weights);

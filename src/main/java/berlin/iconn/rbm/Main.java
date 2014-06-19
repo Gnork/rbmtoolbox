@@ -1,8 +1,8 @@
 package berlin.iconn.rbm;
 
+import berlin.iconn.matrixExperiments.PlaygroundRBM;
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
-import berlin.iconn.rbm.dataprovider.RandomPictureBatchSelectionProvider;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
 import org.jblas.FloatMatrix;
 
@@ -27,27 +27,28 @@ public class Main {
                 {0.0f, -0.014295372f, 0.006884049f}});
 
         //IRBM rbm = new NativeRBM(weights, false);
-        IRBM rbm = new RBM(weights);
+        IRBM rbm = new PlaygroundRBM(weights);
         ATrainingDataProvider provider = new FullTrainingDataProvider(data);
 
-        float[][] sampleData =  provider.getData().addColumnVector(provider.getMeanVector()).toArray2();
+        float[][] sampleData =  provider.getData().toArray2();
 
 
         long start = System.currentTimeMillis();
-        rbm.train(provider, new StoppingCondition(10000), new ConstantLearningRate(0.1f));
+        rbm.train(provider, new StoppingCondition(1), new ConstantLearningRate(0.1f));
         System.out.println(System.currentTimeMillis() - start);
 
-        print(sampleData);
-        float[][] hidden = rbm.getHidden(sampleData);
-        float[][] visible = rbm.getVisible(hidden);
-        print(visible);
+//        print(sampleData, "data");
+//        float[][] hidden = rbm.getHidden(sampleData);
+//        float[][] visible = rbm.getVisible(hidden);
+//        print(visible, "visible");
     }
 
 
-    public static void print(float[][] data) {
+    public static void print(float[][] data, String name) {
+        System.out.println(name);
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
-                System.out.print(Math.round(data[i][j]) + ", ");
+                System.out.print(String.format("%8.5f",data[i][j]) + ", ");
             }
             System.out.println();
         }

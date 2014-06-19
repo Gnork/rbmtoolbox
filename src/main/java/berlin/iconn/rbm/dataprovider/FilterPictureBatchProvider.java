@@ -63,12 +63,6 @@ public class FilterPictureBatchProvider extends ATrainingDataProvider {
 
         FloatMatrix newBatches = new FloatMatrix(newData);
         FloatMatrix meanVector = newBatches.rowMeans();
-        setMeanVector(meanVector);
         setData(newBatches.subColumnVector(meanVector));
-    }
-
-    @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return getMeanVector();
     }
 }

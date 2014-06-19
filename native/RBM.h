@@ -15,7 +15,7 @@ class RBM
 {
 public:
 	RBM(float* weights, int weightsCols,
-		float* data, int dataRows, int dataCols, float* mean,
+		float* data, int dataRows, int dataCols,
 		float learningRate, int threads) :
 		learningRate(learningRate) 
 	{
@@ -26,10 +26,8 @@ public:
 
 		this->dataLength = dataRows * dataCols;
 		this->data = new float[dataLength];
-		this->mean = new float[dataRows];
 
 		std::copy(data, data + dataLength, this->data);
-		std::copy(mean, mean + dataRows, this->mean);
 
 		this->visibleRows = dataRows;
 		this->visibleCols = dataCols;
@@ -48,17 +46,14 @@ public:
 		this->negative = new float[visibleCols * weightsCols];
 	}
 
-	void setData(float* data, float* mean, int dataRows, int dataCols) 
+	void setData(float* data, int dataRows, int dataCols) 
 	{
 		delete[] this->data;
-		delete[] this->mean;
 
 		this->dataLength = dataRows * dataCols;
 		this->data = new float[dataLength];
-		this->mean = new float[dataRows];
 
 		std::copy(data, data + dataLength, this->data);
-		std::copy(mean, mean + dataRows, this->mean);
 
 		this->visibleRows = dataRows;
 		this->visibleCols = dataCols;
@@ -113,10 +108,6 @@ public:
 	{
 		return data;
 	}
-	float* getMean()
-	{
-		return mean;
-	}
 
 	float getError()
 	{
@@ -154,7 +145,6 @@ public:
 	{
 		delete[] weights;
 		delete[] data;
-		delete[] mean;
 		delete[] hidden;
 		delete[] visible;
 		delete[] positive;
@@ -174,9 +164,7 @@ private:
 	int visibleRows;
 	int visibleCols;
 	int dataLength;
-
-	float* mean;
-
+	
 	float* hidden;
 	int hiddenRows;
 	int hiddenLength;
@@ -224,18 +212,6 @@ private:
 			0.0f, c, aCols);
 	}
 	
-	inline void subColumnVector(float* data, int dataRows, int dataCols, float* mean)
-	{
-#pragma omp parallel for
-		for (int i = 0; i < dataCols; i++)
-		{
-			int colPos = dataRows * i;
-			for (int j = 0; j < dataRows; j++)
-			{
-				data[colPos + j] -= mean[j];
-			}
-		}
-	}
 	
 	inline void applyLogistic(float* data, const int size)
 	{
@@ -281,7 +257,6 @@ private:
 		// visible Activations
 		mmulTransposeB(hidden, visibleRows, weightsCols, weights, visibleCols, visible);
 		applyLogistic(visible, dataLength);
-		subColumnVector(visible, visibleRows, visibleCols, mean);
 		resetBias(visible, visibleRows);
 		//show(visible, visibleRows, visibleCols, "visible");
 
@@ -316,7 +291,6 @@ private:
 		// visible Activations
 		mmulTransposeB(hidden, visibleRows, weightsCols, weights, visibleCols, visible);
 		applyLogistic(visible, dataLength);
-		subColumnVector(visible, visibleRows, visibleCols, mean);
 		resetBias(visible, visibleRows);
 		//show(visible, visibleRows, visibleCols, "visible");
 

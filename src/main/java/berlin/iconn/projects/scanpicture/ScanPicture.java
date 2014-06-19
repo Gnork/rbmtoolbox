@@ -57,7 +57,7 @@ public class ScanPicture extends JComponent implements IVisualizeObserver {
     private static float[][] resizeBiLinear(float[][] data, int newWidth, int newHeight) {
 
         float[][] temp = new float[newHeight][newWidth] ;
-        int x, y, index;
+        int x, y;
         final double wRatio = ((double)(data[0].length - 1)) / newWidth ;
         final double hRatio = ((double)(data.length - 1)) / newHeight ;
         double tWidth, tHeight;
@@ -100,8 +100,8 @@ public class ScanPicture extends JComponent implements IVisualizeObserver {
 
             for (int i = 0; i <= originalData.getRows() - rbmEdgeLength; i += rbmEdgeLength) {
                 for (int j = 0; j <= originalData.getColumns() - rbmEdgeLength; j += rbmEdgeLength) {
-                    FloatMatrix batch = originalData.getRange(i, i + rbmEdgeLength, j, j + rbmEdgeLength);
-                    float[][] hiddenBatch =  rbm.getHidden(new float[][]{batch.toArray()});
+                    FloatMatrix patch = originalData.getRange(i, i + rbmEdgeLength, j, j + rbmEdgeLength);
+                    float[][] hiddenBatch =  rbm.getHidden(new float[][]{patch.toArray()});
                     float[][] visibleBatch = rbm.getVisible(hiddenBatch);
                     result.put(new FloatMatrix(rbmEdgeLength, rbmEdgeLength,visibleBatch[0]), i, j);
 

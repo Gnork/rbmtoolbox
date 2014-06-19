@@ -17,7 +17,6 @@ public class SegmentationStackComponentProvider extends ATrainingDataProvider{
 
     public SegmentationStackComponentProvider(FloatMatrix data) {
         super(data);
-        super.setMeanVector(FloatMatrix.zeros(data.rows, 1));
     }
     
     public void setDataForTraining(FloatMatrix data){
@@ -39,9 +38,5 @@ public class SegmentationStackComponentProvider extends ATrainingDataProvider{
 
     }
 
-    @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return super.getMeanVector();
-    }
     
 }

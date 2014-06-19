@@ -18,7 +18,7 @@ public class RBMEnhancer implements IRBM {
     private final LinkedList<IRBMTrainingEnhancement> traningEnhancements;
     private final LinkedList<IRBMEndTrainingEnhancement> endEnhancements;
     private final RBMInfoPackage info;
-    public final static int BASE_INTERVAL = 100;
+    public final static int BASE_INTERVAL = 20000;
 
     public RBMEnhancer(IRBM rbm) {
         super();

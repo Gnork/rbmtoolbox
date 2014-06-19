@@ -38,7 +38,7 @@ public class NativeRBM implements IRBM {
     public void train(ATrainingDataProvider dataProvider, StoppingCondition stop, ILearningRate learningRate) {
 
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
-        float[] mean = dataProvider.getMeanVector().toArray();
+        float[] mean = FloatMatrix.zeros(data.rows, 1).data;
         createNativeRBM(
                 weights.toArray(), weights.getColumns(),
                 data.toArray(), data.rows, data.columns, mean,
@@ -57,7 +57,6 @@ public class NativeRBM implements IRBM {
                 dataProvider.changeDataAtTraining();
 
                 data = dataProvider.getDataWithBiasForTraining();
-                mean = dataProvider.getMeanVector().data;
                 setNativeData(data.toArray(), data.rows, data.columns, mean);
 
                 error = getNativeError();
@@ -71,7 +70,7 @@ public class NativeRBM implements IRBM {
 
     public void fastTrain(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate) {
         FloatMatrix data = dataProvider.getDataWithBiasForTraining();
-        float[] mean = dataProvider.getMeanVector().data;
+        float[] mean = FloatMatrix.zeros(data.rows, 1).data;
         createNativeRBM(
                 weights.data, weights.getColumns(),
                 data.data, data.rows, data.columns, mean,
@@ -113,7 +112,7 @@ public class NativeRBM implements IRBM {
     public float getError(ATrainingDataProvider data) {
         FloatMatrix dataWithBias = data.getDataWithBias();
         FloatMatrix hidden = getHiddenFunction.get(dataWithBias, weights);
-        FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose()).subColumnVector(data.getMeanVector());
+        FloatMatrix visible = getVisibleFunction.get(hidden, weights.transpose());
 
         return (float) Math.sqrt(MatrixFunctions.pow(dataWithBias.sub(visible), 2.0f).sum() / data.getData().length / weights.getRows());
     }

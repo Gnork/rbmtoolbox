@@ -34,8 +34,4 @@ public class FullTrainingDataProvider extends ATrainingDataProvider {
 
     }
 
-    @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return super.getMeanVector();
-    }
 }

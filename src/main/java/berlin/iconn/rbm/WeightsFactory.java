@@ -35,4 +35,16 @@ public class WeightsFactory {
         weights = FloatMatrix.concatVertically(oneVectorRow, weights);
         return weights;
     }
+    public static FloatMatrix patternWeightsWithBias(int input, int output, float weightScale) {
+        FloatMatrix weights = new FloatMatrix(input, output);
+        for (int i = 0; i < weights.data.length; i++) {
+            weights.data[i] = ((i % 3 == 0) ? 1 : -1)  * weightScale;
+        }
+        final FloatMatrix oneVectorCol = FloatMatrix.zeros(weights.getRows(), 1);
+        final FloatMatrix oneVectorRow = FloatMatrix.zeros(1, weights.getColumns() + 1);
+
+        weights = FloatMatrix.concatHorizontally(oneVectorCol, weights);
+        weights = FloatMatrix.concatVertically(oneVectorRow, weights);
+        return weights;
+    }
 }

@@ -58,13 +58,8 @@ public class RandomPictureBatchSelectionProvider extends ATrainingDataProvider {
                     new IntervalRange(indexColumn, indexColumn + batchWidth)).toArray();
         }
         FloatMatrix newBatches = new FloatMatrix(newData);
-        FloatMatrix meanVector =  newBatches.rowMeans();
-        setMeanVector(meanVector);
+        FloatMatrix meanVector = FloatMatrix.zeros(newBatches.getRows(), 1);
         setData(newBatches.subColumnVector(meanVector));
     }
 
-    @Override
-    public FloatMatrix getMeanVectorForTraining() {
-        return getMeanVector();
-    }
 }
