@@ -38,20 +38,8 @@ public final class SegmentationRandomBatchProvider extends ATrainingDataProvider
     }
 
     @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return getDataWithBias();
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return getTransposedDataWithBias();
-    }
-
-    @Override
     public void changeDataAtTraining() {
         setDataWithBias(null);
-        setTransData(null);
-        setTransDataWithBias(null);
         int batchWidth = batchXOffset * 2 + 1;
         int batchHeight = batchYOffset * 2 + 1; 
         float[][] result = new float[batchCount][];

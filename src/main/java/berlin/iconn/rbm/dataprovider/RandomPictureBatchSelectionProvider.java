@@ -35,20 +35,8 @@ public class RandomPictureBatchSelectionProvider extends ATrainingDataProvider {
 
 
     @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return getDataWithBias();
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return getTransposedDataWithBias();
-    }
-
-    @Override
     public void changeDataAtTraining() {
         setDataWithBias(null);
-        setTransData(null);
-        setTransDataWithBias(null);
         float[][] newData = new float[batchCount][];
         for (int i = 0; i < batchCount; i++) {
             FloatMatrix picture = pictures[random.nextInt(pictures.length)];

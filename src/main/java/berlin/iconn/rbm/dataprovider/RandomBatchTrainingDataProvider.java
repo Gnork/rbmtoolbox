@@ -10,36 +10,26 @@ import java.util.Random;
 public class RandomBatchTrainingDataProvider extends ATrainingDataProvider {
 
     private static final Random RANDOM = new Random();
-    private FloatMatrix dataWithBiasSelection;
-    private FloatMatrix transDataWithBiasBatches;
+    private final FloatMatrix allData;
     private final int batchSize;
 
     public RandomBatchTrainingDataProvider(FloatMatrix data, int batchSize) {
-        super(data);
+        super(new float[0][]);
         this.batchSize = batchSize;
+        allData = data;
         changeDataAtTraining();
     }
 
-    @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return dataWithBiasSelection;
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return transDataWithBiasBatches;
-    }
 
     @Override
     public void changeDataAtTraining() {
-        float[][] selection =  new float[batchSize][];
-        float[][] data = getDataWithBias().toArray2();
+        setDataWithBias(null);
+        float[][] minibatch = new float[batchSize][];
+        float[][] data = allData.toArray2();
         for (int i = 0; i < batchSize; i++) {
             final int select = RANDOM.nextInt(data.length);
-            selection[i] = data[select];
+            minibatch[i] = data[select];
         }
-
-        dataWithBiasSelection = new FloatMatrix(selection);
-        transDataWithBiasBatches = new FloatMatrix(selection).transpose();
+        setData(new FloatMatrix(minibatch));
     }
 }

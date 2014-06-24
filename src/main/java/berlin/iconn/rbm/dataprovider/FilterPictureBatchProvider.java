@@ -25,22 +25,9 @@ public class FilterPictureBatchProvider extends ATrainingDataProvider {
 
 
     @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return getDataWithBias();
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return getTransposedDataWithBias();
-    }
-
-    @Override
     public void changeDataAtTraining() {
-        setDataWithBias(null);
-        setTransData(null);
-        setTransDataWithBias(null);
         float[][] newData = new float[batchCount][];
-
+        setDataWithBias(null);
         for (int i = 0; i < batchCount; i++) {
 
             FloatMatrix picture = pictures[indexPicture];
@@ -62,7 +49,6 @@ public class FilterPictureBatchProvider extends ATrainingDataProvider {
         }
 
         FloatMatrix newBatches = new FloatMatrix(newData);
-        FloatMatrix meanVector = newBatches.rowMeans();
-        setData(newBatches.subColumnVector(meanVector));
+        setData(newBatches);
     }
 }

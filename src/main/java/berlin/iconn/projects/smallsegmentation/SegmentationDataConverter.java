@@ -19,7 +19,6 @@ public class SegmentationDataConverter {
         float[][] imageData = new float[dataLength][patchSize * patchSize * 3];
 
         int low = patchSize / 2;
-//        int high = (patchSize % 2 == 0) ? low : low + 1;
         final int newWidth = width - patchSizeMin1;
         for (int i = 0; i < height - patchSizeMin1; i++) {
             int labelY = (i + low) * width + low;
@@ -27,7 +26,6 @@ public class SegmentationDataConverter {
             for (int j = 0; j < newWidth; j++) {
                 final int dataPos = dataY + j;
                 labelData[dataPos][labels[labelY + j]] = 1.0f;
-//                imageData[dataPos][0] = image[(i * width + j) * 3];
                 for (int k = 0; k < patchSize; k++) {
                     for (int a = 0; a < patchSize; a++) {
                         int imagePos = ((i + k) * width + j + a) * 3;

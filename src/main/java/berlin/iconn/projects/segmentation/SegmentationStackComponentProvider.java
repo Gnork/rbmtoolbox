@@ -24,16 +24,6 @@ public class SegmentationStackComponentProvider extends ATrainingDataProvider{
     }
 
     @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return super.getDataWithBias();
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return super.getTransposedDataWithBias();
-    }
-
-    @Override
     public void changeDataAtTraining() {
 
     }

@@ -1,6 +1,5 @@
 package berlin.iconn.projects.smallsegmentation;
 
-import berlin.iconn.matrixExperiments.PlaygroundRBM;
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.*;
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
@@ -55,16 +54,16 @@ public class Main {
 
 
         //Arrays.asList(classes).stream().forEach(System.out::println);
-        int patchSize = 16;
+        int patchSize = 32;
         FloatMatrix[] data = SegmentationDataConverter.createTrainingData(labels, image, pictureSize, pictureSize, patchSize, classLength);
 
         final FloatMatrix labelMatrix = data[0];
         final FloatMatrix imagePatchMatrix = data[1];
 
-        IRBM rbmLabel = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
-        IRBM rbmImage = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 800, 0.01f));
-        IRBM rbmCombination = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 500, 0.01f));
-        IRBM rbmAssociation = new PlaygroundRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 60, 0.01f));
+        IRBM rbmLabel = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
+        IRBM rbmImage = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 400, 0.01f));
+        IRBM rbmCombination = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 400, 0.01f));
+        IRBM rbmAssociation = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 200, 0.01f));
         ShowSegmentation visu = new ShowSegmentation(labels, image, pictureSize, pictureSize,
                 rbmLabel,
                 rbmImage,

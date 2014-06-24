@@ -28,7 +28,7 @@ public class PlaygroundRBM extends RBM {
         Matrix weights = new Matrix(getWeights());
 
         while (stop.isNotDone()) {
-            Matrix dataWithBias = new Matrix(dataProvider.getDataWithBiasForTraining().toArray2());
+            Matrix dataWithBias = new Matrix(dataProvider.getDataWithBias().toArray2());
             Matrix dataWithBiasT = dataWithBias.transpose();
 //            if(transition <= 1.0f) {
 //                dataWithBias = dataWithBias.subtract(dataWithBias.multiplyWithRandom().multiply(1 - transition));

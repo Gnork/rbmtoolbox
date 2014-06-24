@@ -37,8 +37,8 @@ public class RBM  implements IRBM {
     }
 
     private void updateWeights(ATrainingDataProvider dataProvider, ILearningRate learningRate) {
-        final FloatMatrix dataWithBias = dataProvider.getDataWithBiasForTraining();
-        final FloatMatrix dataWithBiasTrans = dataProvider.getTransposedDataWithBiasForTraining();
+        final FloatMatrix dataWithBias = dataProvider.getDataWithBias();
+        final FloatMatrix dataWithBiasTrans = dataWithBias.transpose();
 
 //        Main.print(weights.toArray2(), "weights");
 //        Main.print(dataWithBias.toArray2(), "data");
@@ -105,9 +105,6 @@ public class RBM  implements IRBM {
             }
 
     }
-
-
-
 
     @Override
     public float getError(float[][] data) {

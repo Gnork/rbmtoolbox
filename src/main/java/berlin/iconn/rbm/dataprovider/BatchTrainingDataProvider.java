@@ -7,24 +7,15 @@ import org.jblas.FloatMatrix;
  */
 public class BatchTrainingDataProvider extends ATrainingDataProvider {
 
-    private final FloatMatrix[] dataWithBiasBatches;
-    private final FloatMatrix[] transDataWithBiasBatches;
-    private int batchIndex = 0;
+    private final FloatMatrix allData;
+    private int index = 0;
+    private final int batchSize;
 
-    public BatchTrainingDataProvider(FloatMatrix data, int batchCount) {
-        super(data);
-
-        dataWithBiasBatches = new FloatMatrix[batchCount];
-        transDataWithBiasBatches = new FloatMatrix[batchCount];
-
-        final int range = data.getRows() / batchCount;
-        final int threshold = data.getRows() % batchCount;
-        for (int i = 0; i < batchCount; i++) {
-            final int start = i * range + (i < threshold ? i : threshold);
-            final int end = start + range + (i < threshold ? 1 : 0);
-            dataWithBiasBatches[i] = putBiasOnData(getData().getRange(start, end, 0, getData().columns));
-            transDataWithBiasBatches[i] = dataWithBiasBatches[i].transpose();
-        }
+    public BatchTrainingDataProvider(FloatMatrix data, int batchSize) {
+        super(new float[0][0]);
+        changeDataAtTraining();
+        allData = data;
+        this.batchSize = batchSize;
     }
 
     public BatchTrainingDataProvider(float[][] data, int batchSize){
@@ -32,18 +23,15 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
     }
 
     @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return dataWithBiasBatches[batchIndex];
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return transDataWithBiasBatches[batchIndex];
-    }
-
-    @Override
     public void changeDataAtTraining() {
-        batchIndex++;
-        if(batchIndex >= dataWithBiasBatches.length) batchIndex = 0;
+        setDataWithBias(null);
+        float[][] minibatch = new float[batchSize][];
+        float[][] data = allData.toArray2();
+        for (int i = 0; i < batchSize; i++) {
+            minibatch[i] = data[index];
+            index++;
+            index %= allData.getRows();
+        }
+        setData(new FloatMatrix(minibatch));
     }
 }

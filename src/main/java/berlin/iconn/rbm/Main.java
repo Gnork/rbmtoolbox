@@ -26,21 +26,21 @@ public class Main {
                 {0.0f, 0.010423293f, 0.0072114877f},
                 {0.0f, -0.014295372f, 0.006884049f}});
 
-        //IRBM rbm = new NativeRBM(weights, false);
-        IRBM rbm = new PlaygroundRBM(weights);
+        IRBM rbm = new RBM(weights);
         ATrainingDataProvider provider = new FullTrainingDataProvider(data);
 
         float[][] sampleData =  provider.getData().toArray2();
 
 
         long start = System.currentTimeMillis();
-        rbm.train(provider, new StoppingCondition(1), new ConstantLearningRate(0.1f));
+        rbm.train(provider, new StoppingCondition(1000), new ConstantLearningRate(0.1f));
         System.out.println(System.currentTimeMillis() - start);
 
-//        print(sampleData, "data");
-//        float[][] hidden = rbm.getHidden(sampleData);
-//        float[][] visible = rbm.getVisible(hidden);
-//        print(visible, "visible");
+        print(sampleData, "data");
+        float[][] hidden = rbm.getHidden(sampleData);
+        print(hidden, "hidden");
+        float[][] visible = rbm.getVisible(hidden);
+        print(visible, "visible");
     }
 
 

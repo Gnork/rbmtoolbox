@@ -49,7 +49,7 @@ public class Main {
 
        // RBMEnhancer enhancer = new RBMEnhancer(new RBM(WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, rbmEdgeLength * 4, 0.01f)));
         RBMEnhancer enhancer = new RBMEnhancer(
-                new NativeRBM(
+                new CudaRBM(
                         WeightsFactory.randomGaussianWeightsWithBias(rbmEdgeLength * rbmEdgeLength, 1024, 0.01f)));
         ScanPicture picture = new ScanPicture(new FloatMatrix(edgeLength, edgeLength, trainingData[new Random().nextInt(trainingData.length)]), rbmEdgeLength);
         new Frame(picture);

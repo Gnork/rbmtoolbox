@@ -19,15 +19,6 @@ public class FullTrainingDataProvider extends ATrainingDataProvider {
         super(data);
     }
 
-    @Override
-    public FloatMatrix getDataWithBiasForTraining() {
-        return super.getDataWithBias();
-    }
-
-    @Override
-    public FloatMatrix getTransposedDataWithBiasForTraining() {
-        return super.getTransposedDataWithBias();
-    }
 
     @Override
     public void changeDataAtTraining() {

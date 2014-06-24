@@ -37,7 +37,7 @@ public class NativeRBM implements IRBM {
     @Override
     public void train(ATrainingDataProvider dataProvider, StoppingCondition stop, ILearningRate learningRate) {
 
-        FloatMatrix data = dataProvider.getDataWithBiasForTraining();
+        FloatMatrix data = dataProvider.getDataWithBias();
         float[] mean = FloatMatrix.zeros(data.rows, 1).data;
         createNativeRBM(
                 weights.toArray(), weights.getColumns(),
@@ -56,7 +56,7 @@ public class NativeRBM implements IRBM {
                 }
                 dataProvider.changeDataAtTraining();
 
-                data = dataProvider.getDataWithBiasForTraining();
+                data = dataProvider.getDataWithBias();
                 setNativeData(data.toArray(), data.rows, data.columns, mean);
 
                 error = getNativeError();
@@ -69,7 +69,7 @@ public class NativeRBM implements IRBM {
     }
 
     public void fastTrain(FullTrainingDataProvider dataProvider, int epochs, ILearningRate learningRate) {
-        FloatMatrix data = dataProvider.getDataWithBiasForTraining();
+        FloatMatrix data = dataProvider.getDataWithBias();
         float[] mean = FloatMatrix.zeros(data.rows, 1).data;
         createNativeRBM(
                 weights.data, weights.getColumns(),
