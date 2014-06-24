@@ -12,7 +12,7 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
     private final int batchSize;
 
     public BatchTrainingDataProvider(FloatMatrix data, int batchSize) {
-        super(new float[0][0]);
+        super(new float[1][1]);
         changeDataAtTraining();
         allData = data;
         this.batchSize = batchSize;

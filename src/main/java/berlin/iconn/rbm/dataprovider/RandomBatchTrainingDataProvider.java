@@ -14,7 +14,7 @@ public class RandomBatchTrainingDataProvider extends ATrainingDataProvider {
     private final int batchSize;
 
     public RandomBatchTrainingDataProvider(FloatMatrix data, int batchSize) {
-        super(new float[0][]);
+        super(new float[1][1]);
         this.batchSize = batchSize;
         allData = data;
         changeDataAtTraining();

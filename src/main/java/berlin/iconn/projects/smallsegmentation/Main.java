@@ -60,10 +60,10 @@ public class Main {
         final FloatMatrix labelMatrix = data[0];
         final FloatMatrix imagePatchMatrix = data[1];
 
-        IRBM rbmLabel = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
-        IRBM rbmImage = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 400, 0.01f));
-        IRBM rbmCombination = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 400, 0.01f));
-        IRBM rbmAssociation = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 200, 0.01f));
+        IRBM rbmLabel = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
+        IRBM rbmImage = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 400, 0.01f));
+        IRBM rbmCombination = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 400, 0.01f));
+        IRBM rbmAssociation = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 200, 0.01f));
         ShowSegmentation visu = new ShowSegmentation(labels, image, pictureSize, pictureSize,
                 rbmLabel,
                 rbmImage,
