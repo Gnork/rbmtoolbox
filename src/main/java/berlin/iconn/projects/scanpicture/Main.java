@@ -27,7 +27,7 @@ public class Main {
 
     private static final boolean exportImages = true;
     private static final String exportPath = "export";
-    private static final int edgeLength = 256;
+    private static final int edgeLength = 512;
     private static final int padding = 0;
     private static final boolean isRGB = false;
     private static final boolean binarize = false;
@@ -37,10 +37,10 @@ public class Main {
     private static final String images = "Data\\SiftFlowDataset\\Images\\spatial_envelope_256x256_static_8outdoorcategories";
     public static void main(String[] args) {
 
-        int rbmEdgeLength = 16;
+        int rbmEdgeLength = 64;
         DataSet[] trainingDataSet;
         try {
-            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
+            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, binarize, invert, minData, maxData, isRGB);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             return;
@@ -82,7 +82,7 @@ public class Main {
         new Frame(feature);
         enhancer.addEnhancement(new TrainingVisualizer(1,feature));
 
-        enhancer.train(new RandomPictureBatchSelectionProvider(batchSelectionData, 10, rbmEdgeLength, rbmEdgeLength),
+        enhancer.train(new RandomPictureBatchSelectionProvider(batchSelectionData, 20, rbmEdgeLength, rbmEdgeLength),
                 new StoppingCondition(2_000_000),
                 new ConstantLearningRate(0.01f));
     }

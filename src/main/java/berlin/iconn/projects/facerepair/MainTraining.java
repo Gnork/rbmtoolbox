@@ -38,7 +38,7 @@ public class MainTraining {
 
         DataSet[] trainingDataSet;
         try {
-            trainingDataSet = InOutOperations.loadImages(new File(IMAGES), 64, 0, false, false, 0.0f, 1.0f, true);
+            trainingDataSet = InOutOperations.loadImages(new File(IMAGES), 64, false, false, 0.0f, 1.0f, true);
         } catch (IOException ex) {
             Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;

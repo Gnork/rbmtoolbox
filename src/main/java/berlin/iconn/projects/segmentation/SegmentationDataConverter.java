@@ -1,9 +1,6 @@
-package berlin.iconn.projects.smallsegmentation;
+package berlin.iconn.projects.segmentation;
 
 import org.jblas.FloatMatrix;
-
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 /**
  * Created by Moritz on 6/5/2014.

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import java.util.Random;
 import org.jblas.FloatMatrix;

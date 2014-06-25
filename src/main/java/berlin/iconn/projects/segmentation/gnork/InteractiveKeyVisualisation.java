@@ -1,4 +1,4 @@
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

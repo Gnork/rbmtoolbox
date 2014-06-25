@@ -129,7 +129,7 @@ public class RBM  implements IRBM {
     public FloatMatrix getWeightsMatrix() {
         return this.weights;
     }
-    private FloatMatrix removeBiasFromData(FloatMatrix data) {
+    protected FloatMatrix removeBiasFromData(FloatMatrix data) {
         return data.getRange(0, data.getRows(), 1, data.getColumns());
     }
 }

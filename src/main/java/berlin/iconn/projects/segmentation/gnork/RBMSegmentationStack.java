@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.*;
@@ -21,7 +21,7 @@ import org.jblas.FloatMatrix;
  *
  * @author christoph
  */
-public class SimpleStack{
+public class RBMSegmentationStack{
     private final int weightsSaverInterval = Integer.MAX_VALUE;
     private final int baseInterval = 1000;
     private final Date date = new Date();
@@ -31,7 +31,7 @@ public class SimpleStack{
     private IRBM combiRBM;
     private IRBM assocRBM;
     
-    public SimpleStack(int labelIn, int labelOut, FloatMatrix labelWeights, int imageIn, int imageOut, FloatMatrix imageWeights, int combiOut, FloatMatrix combiWeights, int assocOut, FloatMatrix assocWeights, float weightsFactor, boolean binarizeHidden){
+    public RBMSegmentationStack(int labelIn, int labelOut, FloatMatrix labelWeights, int imageIn, int imageOut, FloatMatrix imageWeights, int combiOut, FloatMatrix combiWeights, int assocOut, FloatMatrix assocWeights, float weightsFactor, boolean binarizeHidden){
         
         this(   labelWeights == null ? WeightsFactory.randomGaussianWeightsWithBias(labelIn, labelOut, weightsFactor) : labelWeights,
                 imageWeights == null ? WeightsFactory.randomGaussianWeightsWithBias(imageIn, imageOut, weightsFactor): imageWeights,
@@ -40,7 +40,7 @@ public class SimpleStack{
                 binarizeHidden);
     }
     
-    public SimpleStack(int labelIn, int labelOut, int imageIn, int imageOut, int combiOut, int assocOut, float weightsFactor, boolean binarizeHidden){
+    public RBMSegmentationStack(int labelIn, int labelOut, int imageIn, int imageOut, int combiOut, int assocOut, float weightsFactor, boolean binarizeHidden){
         this(   WeightsFactory.randomGaussianWeightsWithBias(labelIn, labelOut, weightsFactor),
                 WeightsFactory.randomGaussianWeightsWithBias(imageIn, imageOut, weightsFactor),
                 WeightsFactory.randomGaussianWeightsWithBias(labelOut + imageOut, combiOut, weightsFactor),
@@ -48,7 +48,7 @@ public class SimpleStack{
                 binarizeHidden);
     }
     
-    public SimpleStack(FloatMatrix labelWeights, FloatMatrix imageWeights, FloatMatrix combiWeights, FloatMatrix assocWeights, boolean binarizeHidden){
+    public RBMSegmentationStack(FloatMatrix labelWeights, FloatMatrix imageWeights, FloatMatrix combiWeights, FloatMatrix assocWeights, boolean binarizeHidden){
         if(binarizeHidden){
             labelRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), labelWeights, new DefaultModifier());
             imageRBM = new RBM(new GetStatesFunction(new CommonBinarize()), new GetStatesFunction(), imageWeights, new DefaultModifier());
@@ -59,26 +59,40 @@ public class SimpleStack{
             imageRBM = new RBM(imageWeights);
             combiRBM = new RBM(combiWeights);
             assocRBM = new RBM(assocWeights);
-        }     
+        }
+
+//        if(binarizeHidden){
+//            labelRBM = new NativeRBM(labelWeights, true);
+//            imageRBM = new NativeRBM(imageWeights, true);
+//            combiRBM = new NativeRBM(combiWeights, true);
+//            assocRBM = new NativeRBM(assocWeights, true);
+//        }else{
+//            labelRBM = new NativeRBM(labelWeights);
+//            imageRBM = new NativeRBM(imageWeights);
+//            combiRBM = new NativeRBM(combiWeights);
+//            assocRBM = new NativeRBM(assocWeights);
+//        }
     }
     
-    public void trainRBM(IRBM rbm, SimpleStackGenerator generator, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){
+    public void trainRBM(IRBM rbm, SegmentationStackRandomBatchGenerator generator, SegmentationStackRandomBatchGenerator generatorCrossValidation, StoppingCondition stop, ILearningRate learningRate, ITrainingData data){
         
         stop = new StoppingCondition(stop.getMaxEpochs() / baseInterval);
         int allEpochs = stop.getMaxEpochs() * baseInterval;
         
-        SegmentationStackComponentProvider provider;
-        generator.changeDataAtTraining();
+        SegmentationStackComponentProvider provider = new SegmentationStackComponentProvider(new FloatMatrix(generator.getBatchCount(), 1));
+        
         while(stop.isNotDone()){
             stop.update(0.0f);
+            generator.changeDataAtTraining();
+            generatorCrossValidation.changeDataAtTraining();
             FloatMatrix trainingData = data.getData(generator);
-
-            provider = new SegmentationStackComponentProvider(trainingData);
-            
+            provider.setDataForTraining(trainingData);          
             rbm.train(provider, new StoppingCondition(baseInterval), learningRate);
             
+            FloatMatrix crossValidationData = data.getData(generatorCrossValidation);
             
             float error = rbm.getError(trainingData.toArray2());
+            float errorCrossValidation = rbm.getError(crossValidationData.toArray2());
             
             int epochs = stop.getCurrentEpochs() * baseInterval;
                        
@@ -86,18 +100,18 @@ public class SimpleStack{
                 InOutOperations.saveSimpleWeights(rbm.getWeights(), date, data.getName());
             } catch (IOException ex) {
                 System.err.println("Could not save weights");
-                Logger.getLogger(SimpleStack.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(RBMSegmentationStack.class.getName()).log(Level.SEVERE, null, ex);
             }          
-            System.out.println(data.getName() + " -> error: " + error + "\tepochs: " + epochs + " / " + allEpochs);
+            System.out.println(data.getName() + " -> error: " + error + "\tCV error: " + errorCrossValidation + "\tepochs: " + epochs + " / " + allEpochs);
         }
     }
 
 
-    public void train(SimpleStackGenerator generator, StoppingCondition stop, ILearningRate learningRate) {
-        trainRBM(labelRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new LabelData());
-        trainRBM(imageRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new ImageData());
-        trainRBM(combiRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new CombiData());
-        trainRBM(assocRBM, generator, new StoppingCondition(stop.getMaxEpochs()), learningRate, new AssocData());
+    public void train(SegmentationStackRandomBatchGenerator generator, SegmentationStackRandomBatchGenerator generatorCrossValidation, StoppingCondition stop, ILearningRate learningRate) {
+        trainRBM(labelRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new LabelData());
+        trainRBM(imageRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new ImageData());
+        trainRBM(combiRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new CombiData());
+        trainRBM(assocRBM, generator, generatorCrossValidation, new StoppingCondition(stop.getMaxEpochs()), learningRate, new AssocData());
     }
     
     public float[] reconstructLabel(float[] imagePatch, int numOfClasses){
@@ -133,13 +147,13 @@ public class SimpleStack{
     }
     
     interface ITrainingData{
-        FloatMatrix getData(SimpleStackGenerator generator);
+        FloatMatrix getData(SegmentationStackRandomBatchGenerator generator);
         String getName();
     }
     
     class LabelData implements ITrainingData{
         @Override
-        public FloatMatrix getData(SimpleStackGenerator generator) {
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
             return generator.getLabelData();
         }
         @Override
@@ -150,7 +164,7 @@ public class SimpleStack{
     
     class ImageData implements ITrainingData{
         @Override
-        public FloatMatrix getData(SimpleStackGenerator generator) {
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
             return generator.getImageData();
         }
         @Override
@@ -161,7 +175,7 @@ public class SimpleStack{
     
     class CombiData implements ITrainingData{
         @Override
-        public FloatMatrix getData(SimpleStackGenerator generator) {
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
             FloatMatrix labelData = generator.getLabelData();
             FloatMatrix imageData = generator.getImageData();
             float[][] labelHidden = labelRBM.getHidden(labelData.toArray2());
@@ -176,7 +190,7 @@ public class SimpleStack{
     
     class AssocData implements ITrainingData{
         @Override
-        public FloatMatrix getData(SimpleStackGenerator generator) {
+        public FloatMatrix getData(SegmentationStackRandomBatchGenerator generator) {
             FloatMatrix labelData = generator.getLabelData();
             FloatMatrix imageData = generator.getImageData();
             float[][] labelHidden = labelRBM.getHidden(labelData.toArray2());

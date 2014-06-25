@@ -1,4 +1,4 @@
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 /**
  * Created by G on 02.06.14.

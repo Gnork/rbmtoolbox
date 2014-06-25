@@ -62,8 +62,8 @@ public class MainTest {
         DataSet[] testDataSet = null;
         DataSet[] compareDataSet = null;
         try {
-            testDataSet = InOutOperations.loadImages(testData, edgeLength, 0, false, false, 0.0f, 1.0f, true);
-            compareDataSet = InOutOperations.loadImages(compareData, edgeLength, 0, false, false, 0.0f, 1.0f, true);
+            testDataSet = InOutOperations.loadImages(testData, edgeLength, false, false, 0.0f, 1.0f, true);
+            compareDataSet = InOutOperations.loadImages(compareData, edgeLength, false, false, 0.0f, 1.0f, true);
         } catch (IOException ex) {
             Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
         }

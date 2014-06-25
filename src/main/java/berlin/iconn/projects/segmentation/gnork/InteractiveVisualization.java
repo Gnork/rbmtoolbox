@@ -4,14 +4,13 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.rbm.DataConverter;
 import berlin.iconn.rbm.RBM;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JComponent;

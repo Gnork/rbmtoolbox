@@ -20,6 +20,7 @@ public class RBMEnhancer implements IRBM {
     private final RBMInfoPackage info;
     public final static int BASE_INTERVAL = 100;
 
+
     public RBMEnhancer(IRBM rbm) {
         super();
         this.rbm = rbm;

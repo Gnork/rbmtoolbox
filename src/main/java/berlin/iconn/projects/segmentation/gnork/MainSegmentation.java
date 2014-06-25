@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.DataConverter;
@@ -15,8 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
-import berlin.iconn.rbm.enhancements.TrainingVisualizer;
-import berlin.iconn.rbm.enhancements.visualizations.ErrorDataVisualization;
 import org.jblas.FloatMatrix;
 
 /**

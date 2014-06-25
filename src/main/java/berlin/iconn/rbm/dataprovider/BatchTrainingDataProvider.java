@@ -7,13 +7,13 @@ import org.jblas.FloatMatrix;
  */
 public class BatchTrainingDataProvider extends ATrainingDataProvider {
 
-    private final FloatMatrix allData;
+    private final float[][] allData;
     private int index = 0;
     private final int batchSize;
 
     public BatchTrainingDataProvider(FloatMatrix data, int batchSize) {
         super(new float[1][1]);
-        allData = data;
+        allData = data.toArray2();
         this.batchSize = batchSize;
         changeDataAtTraining();
     }
@@ -26,11 +26,11 @@ public class BatchTrainingDataProvider extends ATrainingDataProvider {
     public void changeDataAtTraining() {
         setDataWithBias(null);
         float[][] minibatch = new float[batchSize][];
-        float[][] data = allData.toArray2();
+        float[][] data = allData;
         for (int i = 0; i < batchSize; i++) {
             minibatch[i] = data[index];
             index++;
-            index %= allData.getRows();
+            index %= allData.length;
         }
         setData(new FloatMatrix(minibatch));
     }

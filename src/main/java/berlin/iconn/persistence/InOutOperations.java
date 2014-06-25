@@ -62,32 +62,31 @@ public class InOutOperations {
             ImageIO.write(image, "png", file);
         }
     }
+
+    public static File[] getImageFiles(File path) {
+        return path.listFiles((dir, name) -> (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif")));
+    }
     
-    public static DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
+    public static DataSet[] loadImages(File path, int edgeLength, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
 
-        final File[] imageFiles = path.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif"));
-            }
-        });
+        final File[] imageFiles = getImageFiles(path);
 
-        int size = edgeLength * edgeLength;
         DataSet[] result = new DataSet[imageFiles.length];
 
         for (int i = 0; i < imageFiles.length; i++) {
-            float[] imageData;
-            imageData = DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
-            // Pad does not work with RGB images
-            //imageData = DataConverter.pad(imageData, edgeLength, padding);
-
-            String label = imageFiles[i].getName().split("_")[0];
-            result[i] = new DataSet(imageData, label);
+           result[i]  = getImageData(edgeLength, binarize, invert, minData, maxData, isRGB, imageFiles[i]);
         }
-
         return result;
     }
-    
+
+    private static DataSet getImageData(int edgeLength, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB, File imageFile) throws IOException {
+        float[] imageData;
+        imageData = DataConverter.processPixelData(ImageIO.read(imageFile), edgeLength, binarize, invert, minData, maxData, isRGB);
+
+        String label = imageFile.getName().split("_")[0];
+        return new DataSet(imageData, label);
+    }
+
     public static int[][] loadSiftFlowLabels(File path) throws FileNotFoundException, IOException{
         final File[] labelsFiles = path.listFiles((File dir, String name) -> (name.endsWith(".mat")));
         
