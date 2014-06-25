@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import java.util.Random;

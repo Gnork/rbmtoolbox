@@ -26,7 +26,7 @@ public class Main {
                 {0.0f, 0.010423293f, 0.0072114877f},
                 {0.0f, -0.014295372f, 0.006884049f}});
 
-        IRBM rbm = new RBM(weights);
+        IRBM rbm = new CudaRBM(weights);
         ATrainingDataProvider provider = new FullTrainingDataProvider(data);
 
         float[][] sampleData =  provider.getData().toArray2();

@@ -1,10 +1,11 @@
-package berlin.iconn.projects.smallsegmentation;
+package berlin.iconn.projects.segmentation.smallsegmentation;
 
 import berlin.iconn.persistence.InOutOperations;
+import berlin.iconn.projects.segmentation.SegmentationDataConverter;
 import berlin.iconn.rbm.*;
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.dataprovider.BatchTrainingDataProvider;
-import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
+import berlin.iconn.rbm.dataprovider.RandomBatchTrainingDataProvider;
 import berlin.iconn.rbm.enhancements.RBMEnhancer;
 import berlin.iconn.rbm.enhancements.TrainingVisualizer;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
@@ -37,10 +38,10 @@ public class Main {
             System.out.println("Classes loaded");
             labels = InOutOperations.loadSiftFlowLabel(labelFile);
             int[] temp = new int[pictureSize * pictureSize];
-            double ratio = 256 / pictureSize;
+            double ratio = 256 / (double)pictureSize;
             for (int i = 0; i < pictureSize; i++) {
                 for (int j = 0; j < pictureSize; j++) {
-                    int index = (int)(i * ratio * 256) + (int)(j * ratio);
+                    int index = (int) ( Math.floor(i * ratio) * 256 + Math.floor(j * ratio) );
                     temp[i * pictureSize + j] = labels[index];
                 }
             }
@@ -52,27 +53,67 @@ public class Main {
         }
 
 
-
         //Arrays.asList(classes).stream().forEach(System.out::println);
-        int patchSize = 32;
+        int patchSize = 16;
         FloatMatrix[] data = SegmentationDataConverter.createTrainingData(labels, image, pictureSize, pictureSize, patchSize, classLength);
 
         final FloatMatrix labelMatrix = data[0];
         final FloatMatrix imagePatchMatrix = data[1];
 
-        IRBM rbmLabel = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
+        segmentation2(labels, image, date, patchSize, labelMatrix, imagePatchMatrix);
+
+    }
+
+    private static void segmentation2(int[] labels, float[] image, Date date, int patchSize, FloatMatrix labelMatrix, FloatMatrix imagePatchMatrix) {
+        FloatMatrix combinationMatrix = FloatMatrix.concatHorizontally(labelMatrix, imagePatchMatrix);
+
+        int hiddenCombinationCount = 200;
+        int hiddenAssociationCount = 100;
+        IRBM combinationRBM = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(combinationMatrix.getColumns(), hiddenCombinationCount, 0.01f));
+        IRBM associationRBM = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(hiddenCombinationCount, hiddenAssociationCount, 0.01f));
+
+        ShowSegmentation2 showSegmentation = new ShowSegmentation2(labels, image,patchSize, classLength, pictureSize, pictureSize, combinationRBM, associationRBM);
+        new Frame(showSegmentation);
+
+        ATrainingDataProvider combinationData = new RandomBatchTrainingDataProvider(combinationMatrix, 10);
+        System.out.println("Train Combination: " +  combinationRBM.getWeights().length + "  " + combinationRBM.getWeights()[0].length);
+        RBMEnhancer enhancer = new RBMEnhancer(combinationRBM);
+        enhancer.addEnhancement(new TrainingVisualizer(1, showSegmentation));
+        enhancer.train(combinationData, new StoppingCondition(100_000), new ConstantLearningRate(0.01f));
+        try {
+            InOutOperations.saveSimpleWeights(combinationRBM.getWeights(), date, "combination");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        showSegmentation.nextState();
+        FloatMatrix associationMatrix = new FloatMatrix(combinationRBM.getHidden(combinationMatrix.toArray2()));
+        ATrainingDataProvider associatioData = new RandomBatchTrainingDataProvider(associationMatrix, 10);
+        System.out.println("Train Association: " +  associationRBM.getWeights().length + "  " + associationRBM.getWeights()[0].length);
+        enhancer = new RBMEnhancer(associationRBM);
+        enhancer.addEnhancement(new TrainingVisualizer(1, showSegmentation));
+        enhancer.train(associatioData, new StoppingCondition(300_000), new ConstantLearningRate(0.01f));
+        try {
+            InOutOperations.saveSimpleWeights(associationRBM.getWeights(), date, "asssociation");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void segmentation1(int[] labels, float[] image, Date date, int patchSize, FloatMatrix labelMatrix, FloatMatrix imagePatchMatrix) {
+        IRBM rbmLabel = new NativeRBM(WeightsFactory.randomGaussianWeightsWithBias(classLength, classLength, 0.01f));
         IRBM rbmImage = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(imagePatchMatrix.columns, 400, 0.01f));
         IRBM rbmCombination = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmLabel.getWeights()[0].length + rbmImage.getWeights()[0].length - 2, 400, 0.01f));
         IRBM rbmAssociation = new CudaRBM(WeightsFactory.randomGaussianWeightsWithBias(rbmCombination.getWeights()[0].length - 1, 200, 0.01f));
-        ShowSegmentation visu = new ShowSegmentation(labels, image, pictureSize, pictureSize,
+        ShowSegmentation1 visu = new ShowSegmentation1(labels, image, pictureSize, pictureSize,
                 rbmLabel,
                 rbmImage,
                 rbmCombination,
                 rbmAssociation,
                 classLength, patchSize);
-         new Frame(visu);
+        new Frame(visu);
 
-        ATrainingDataProvider labelData = new BatchTrainingDataProvider(labelMatrix, 6000);
+        ATrainingDataProvider labelData = new BatchTrainingDataProvider(labelMatrix, 15);
         System.out.println("Train Labels: " +  rbmLabel.getWeights().length + "  " + rbmLabel.getWeights()[0].length);
         RBMEnhancer enhancer = new RBMEnhancer(rbmLabel);
         enhancer.addEnhancement(new TrainingVisualizer(1, visu));
@@ -84,7 +125,7 @@ public class Main {
         }
 
 
-        ATrainingDataProvider imageData = new BatchTrainingDataProvider(imagePatchMatrix, 6000);
+        ATrainingDataProvider imageData = new BatchTrainingDataProvider(imagePatchMatrix, 15);
         System.out.println("Train Imagepatches: " +  rbmImage.getWeights().length + "  " + rbmImage.getWeights()[0].length);
         enhancer = new RBMEnhancer(rbmImage);
         enhancer.addEnhancement(new TrainingVisualizer(1, visu));
@@ -98,7 +139,7 @@ public class Main {
         float[][] hiddenLabels = rbmLabel.getHidden(labelMatrix.toArray2());
         float[][] hiddenImagePatches = rbmImage.getHidden(imagePatchMatrix.toArray2());
         FloatMatrix combinationMatrix = FloatMatrix.concatHorizontally(new FloatMatrix(hiddenLabels), new FloatMatrix(hiddenImagePatches));
-        ATrainingDataProvider combinationData = new BatchTrainingDataProvider(combinationMatrix, 6000);
+        ATrainingDataProvider combinationData = new BatchTrainingDataProvider(combinationMatrix, 15);
 
         System.out.println("Train Combination: " +  rbmCombination.getWeights().length + "  " + rbmCombination.getWeights()[0].length);
         enhancer = new RBMEnhancer(rbmCombination);
@@ -114,7 +155,7 @@ public class Main {
 
         float[][] hiddenCombination = rbmCombination.getHidden(combinationMatrix.toArray2());
         FloatMatrix associationMatrix = new FloatMatrix(hiddenCombination);
-        ATrainingDataProvider associationData = new BatchTrainingDataProvider(associationMatrix, 6000);
+        ATrainingDataProvider associationData = new BatchTrainingDataProvider(associationMatrix, 15);
 
         System.out.println("Train Association: " +  rbmAssociation.getWeights().length + "  " + rbmAssociation.getWeights()[0].length);
         enhancer = new RBMEnhancer(rbmAssociation);
@@ -126,7 +167,6 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     // labels on FloatMatrix[0]

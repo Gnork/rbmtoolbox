@@ -41,7 +41,7 @@ public class MainSegmentationTraining {
         int rbmEdgeLength = 8;
         DataSet[] trainingDataSet;
         try {
-            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
+            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, binarize, invert, minData, maxData, isRGB);
         } catch (IOException ex) {
             Logger.getLogger(MainSegmentationTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;

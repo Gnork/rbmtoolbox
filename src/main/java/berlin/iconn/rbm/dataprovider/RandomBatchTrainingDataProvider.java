@@ -10,13 +10,13 @@ import java.util.Random;
 public class RandomBatchTrainingDataProvider extends ATrainingDataProvider {
 
     private static final Random RANDOM = new Random();
-    private final FloatMatrix allData;
+    private final float[][] allData;
     private final int batchSize;
 
     public RandomBatchTrainingDataProvider(FloatMatrix data, int batchSize) {
         super(new float[1][1]);
         this.batchSize = batchSize;
-        allData = data;
+        allData = data.toArray2();
         changeDataAtTraining();
     }
 
@@ -25,7 +25,7 @@ public class RandomBatchTrainingDataProvider extends ATrainingDataProvider {
     public void changeDataAtTraining() {
         setDataWithBias(null);
         float[][] minibatch = new float[batchSize][];
-        float[][] data = allData.toArray2();
+        float[][] data = allData;
         for (int i = 0; i < batchSize; i++) {
             final int select = RANDOM.nextInt(data.length);
             minibatch[i] = data[select];

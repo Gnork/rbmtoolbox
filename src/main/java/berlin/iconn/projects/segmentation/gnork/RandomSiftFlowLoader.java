@@ -3,12 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.DataConverter;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;

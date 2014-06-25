@@ -1,6 +1,5 @@
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
-import berlin.iconn.persistence.InOutOperations;
 import berlin.iconn.rbm.DataConverter;
 
 import javax.swing.*;
@@ -8,7 +7,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 /**
  * Created by G on 01.06.14.

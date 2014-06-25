@@ -1,8 +1,6 @@
-package berlin.iconn.projects.segmentation;
+package berlin.iconn.projects.segmentation.gnork;
 
 import berlin.iconn.persistence.InOutOperations;
-import berlin.iconn.rbm.DataConverter;
-import berlin.iconn.rbm.DataSet;
 import berlin.iconn.rbm.StoppingCondition;
 import berlin.iconn.rbm.learningRate.ConstantLearningRate;
 import java.io.File;
@@ -13,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Created by Moritz on 4/28/2014.
  */
-public class MainSimpleTraining {
+public class MainTraining {
 
     private static final int edgeLength = 256;
     private static final int batchOffset = 2;
@@ -29,9 +27,6 @@ public class MainSimpleTraining {
     private static final String siftFlowLabelsCrossValidation = "Data/SiftFlowDataset/SemanticLabels/labels";
     private static final String siftFlowClasses = "Data/SiftFlowDataset/SemanticLabels/classes.mat";
     
-    private static final String imageFile = "Data/SiftFlowDataset/Images/spatial_envelope_256x256_static_8outdoorcategories/highway_urb713.jpg";
-    private static final String labelFile = "Data/SiftFlowDataset/SemanticLabels/labels/highway_urb713.mat";
-    
     public static void main(String[] args) {
 
         final String[] classes;
@@ -41,7 +36,7 @@ public class MainSimpleTraining {
             System.out.println("Classes loaded");
             
         } catch (IOException ex) {
-            Logger.getLogger(MainSimpleTraining.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainTraining.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
         
@@ -52,13 +47,16 @@ public class MainSimpleTraining {
         System.out.println("image input size: " + imageInputSize);
         System.out.println("label input size: " + classes.length);
         
-        SimpleStackGenerator generator = new SimpleStackGenerator(edgeLength, classes, batchOffset, batchOffset);
+        RandomSiftFlowLoader loader = new RandomSiftFlowLoader(new File(images), new File(siftFlowLabels), edgeLength, binarize, invert, minData, maxData, isRGB);
+        RandomSiftFlowLoader loaderCrossValidation = new RandomSiftFlowLoader(new File(imagesCrossValidation), new File(siftFlowLabelsCrossValidation), edgeLength, binarize, invert, minData, maxData, isRGB);
         
+        SegmentationStackRandomBatchGenerator provider = new SegmentationStackRandomBatchGenerator(loader, edgeLength, classes, batchOffset, batchOffset, 1000, 750, isRGB);
+        SegmentationStackRandomBatchGenerator providerCrossValidation = new SegmentationStackRandomBatchGenerator(loaderCrossValidation, edgeLength, classes, batchOffset, batchOffset, 1000, 750, isRGB);
         
-        SimpleStack stack = new SimpleStack(classes.length, 30, imageInputSize, 30, 30, 30, 0.01f, true);
+        RBMSegmentationStack stack = new RBMSegmentationStack(classes.length, 30, imageInputSize, 400, 100, 30, 0.01f, true);
         
         System.out.println("start training");
         
-        stack.train(generator, new StoppingCondition(1000), new ConstantLearningRate(0.1f));
+        stack.train(provider, providerCrossValidation, new StoppingCondition(100000), new ConstantLearningRate(0.2f));
     }
 }

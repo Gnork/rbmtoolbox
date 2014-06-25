@@ -35,7 +35,7 @@ public class Main {
     public static void main(String[] args) {
         DataSet[] trainingDataSet;
         try {
-            trainingDataSet = InOutOperations.loadImages(new File(images), edgeLength, padding, binarize, invert, minData, maxData, isRGB);
+            trainingDataSet = InOutOperations.loadImages(new File(images), padding, binarize, invert, minData, maxData, isRGB);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             return;

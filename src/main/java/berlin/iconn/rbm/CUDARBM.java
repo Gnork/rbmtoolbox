@@ -7,16 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import berlin.iconn.rbm.dataprovider.FullTrainingDataProvider;
+import jcuda.driver.*;
 import org.jblas.FloatMatrix;
 
 import berlin.iconn.rbm.dataprovider.ATrainingDataProvider;
 import berlin.iconn.rbm.learningRate.ILearningRate;
 import jcuda.Pointer;
 import jcuda.Sizeof;
-import jcuda.driver.CUcontext;
-import jcuda.driver.CUdevice;
-import jcuda.driver.CUfunction;
-import jcuda.driver.CUmodule;
 import jcuda.jcublas.JCublas;
 
 
@@ -28,17 +26,90 @@ public class CudaRBM extends RBM {
     private static CUfunction sigmoid;
     private static CUfunction contrastiveDivergence;
 
-    private static int blockDim = 256;
+    private static int blockDim = 512;
     static {
         initCudaRBM();
         sigmoid = loadFunction("sigmoid.cu", "sigmoid");
         contrastiveDivergence = loadFunction("contrastive_divergence.cu", "contrastiveDivergence");
     }
 
-    private int miniBatchCountOnCudaDevice;
 
     public CudaRBM(FloatMatrix weights) {
         super(weights);
+    }
+
+    @Override
+    public float[][] getHidden(float[][] data) {
+        FloatMatrix dataMatrix = new FullTrainingDataProvider(data).getDataWithBias();
+
+        Pointer dataPointer = new Pointer();
+        int visibleColumns = dataMatrix.getColumns();
+        int visibleRows = dataMatrix.getRows();
+        int visibleSize =  visibleColumns * visibleRows;
+        JCublas.cublasAlloc(visibleSize, Sizeof.FLOAT, dataPointer);
+        JCublas.cublasSetVector(visibleSize, Sizeof.FLOAT, Pointer.to(dataMatrix.data), 1, dataPointer, 1);
+
+        Pointer weightsPointer = new Pointer();
+        int weightColumns = super.weights.getColumns();
+        int weightRows = super.weights.getRows();
+        int weightsSize = weightColumns * weightRows;
+        JCublas.cublasAlloc(weightsSize, Sizeof.FLOAT, weightsPointer);
+        JCublas.cublasSetVector(weightsSize, Sizeof.FLOAT, Pointer.to(super.weights.data), 1, weightsPointer, 1);
+
+        Pointer hiddenPointer = new Pointer();
+        int hiddenSize = visibleRows * weightColumns;
+        JCublas.cublasAlloc(hiddenSize, Sizeof.FLOAT, hiddenPointer);
+
+        mmul(dataPointer, visibleRows, visibleColumns, weightsPointer, weightColumns, hiddenPointer);
+        applyLogistic(hiddenPointer, hiddenSize);
+
+        FloatMatrix hiddenMatrix = FloatMatrix.zeros(visibleRows, weightColumns);
+
+        JCublas.cublasGetVector(hiddenSize, Sizeof.FLOAT, hiddenPointer, 1, Pointer.to(hiddenMatrix.data), 1);
+
+        JCublas.cublasFree(weightsPointer);
+        JCublas.cublasFree(dataPointer);
+        JCublas.cublasFree(hiddenPointer);
+
+        return removeBiasFromData(hiddenMatrix).toArray2();
+    }
+
+    @Override
+    public float[][] getVisible(float[][] data) {
+        FloatMatrix hiddenMatrix = new FullTrainingDataProvider(data).getDataWithBias();
+        Pointer hiddenPointer = new Pointer();
+
+        int hiddenColumns = hiddenMatrix.getColumns();
+        int hiddenRows = hiddenMatrix.getRows();
+        int hiddenSize =  hiddenColumns * hiddenRows;
+
+        int weightRows = super.weights.getRows();
+        int weightColumns = super.weights.getColumns();
+        int weightsSize = weightColumns * weightRows;
+
+        JCublas.cublasAlloc(hiddenSize, Sizeof.FLOAT, hiddenPointer);
+        JCublas.cublasSetVector(hiddenSize, Sizeof.FLOAT, Pointer.to(hiddenMatrix.data), 1, hiddenPointer, 1);
+
+        Pointer weightsPointer = new Pointer();
+        JCublas.cublasAlloc(weightsSize, Sizeof.FLOAT, weightsPointer);
+        JCublas.cublasSetVector(weightsSize, Sizeof.FLOAT, Pointer.to(super.weights.data), 1, weightsPointer, 1);
+
+        Pointer visiblePointer = new Pointer();
+        int visibleSize = weightRows * hiddenRows;
+        JCublas.cublasAlloc(visibleSize, Sizeof.FLOAT, visiblePointer);
+
+        mmulTransposeB(hiddenPointer, hiddenRows, hiddenColumns, weightsPointer, weightRows, visiblePointer);
+        applyLogistic(visiblePointer, visibleSize);
+
+        FloatMatrix visibleMatrix = FloatMatrix.zeros(hiddenRows, weightRows);
+
+        JCublas.cublasGetVector(visibleSize, Sizeof.FLOAT, visiblePointer, 1, Pointer.to(visibleMatrix.data), 1);
+
+        JCublas.cublasFree(weightsPointer);
+        JCublas.cublasFree(visiblePointer);
+        JCublas.cublasFree(hiddenPointer);
+
+        return removeBiasFromData(visibleMatrix).toArray2();
     }
 
     @Override
@@ -162,8 +233,9 @@ public class CudaRBM extends RBM {
 
     public void applyLogistic(Pointer data, int length) {
         Pointer kernelParameters = Pointer.to(Pointer.to(data), Pointer.to(new int[]{length}));
+        int  gridSize = (int) Math.ceil(length / (double) blockDim);
         cuLaunchKernel(sigmoid,
-                (int) Math.ceil(length / (double) blockDim), 1, 1,
+                gridSize, 1, 1,
                 blockDim, 1, 1,
                 0,
                 null,
