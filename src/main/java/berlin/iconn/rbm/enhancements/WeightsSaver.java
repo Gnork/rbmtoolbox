@@ -42,7 +42,7 @@ public class WeightsSaver implements IRBMTrainingEnhancement{
     public void action(RBMInfoPackage info) {
         try {
             InOutOperations.saveSimpleWeights(info.getWeights(), date, suffix);
-            //System.out.println("Weights saved!");
+            System.out.println("Weights saved!");
         } catch (IOException ex) {
             Logger.getLogger(WeightsSaver.class.getName()).log(Level.SEVERE, null, ex);
         }

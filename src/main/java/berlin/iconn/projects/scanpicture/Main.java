@@ -34,7 +34,7 @@ public class Main {
     private static final boolean invert = false;
     private static final float minData = 0.0f;
     private static final float maxData = 1.0f;
-    private static final String images = "Data/RGB_R02_0600x0600";
+    private static final String images = "Data\\SiftFlowDataset\\Images\\spatial_envelope_256x256_static_8outdoorcategories";
     public static void main(String[] args) {
 
         int rbmEdgeLength = 16;

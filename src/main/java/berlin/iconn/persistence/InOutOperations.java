@@ -184,7 +184,7 @@ public class InOutOperations {
         return result;
     }
     
-    private static final void mkdir(String path) throws IOException{
+    public static final void mkdir(String path) throws IOException{
         File file = new File(path);
         if(!file.isDirectory()){
             FileUtils.forceMkdir(file);
