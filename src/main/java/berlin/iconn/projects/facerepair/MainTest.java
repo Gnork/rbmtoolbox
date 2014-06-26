@@ -29,11 +29,11 @@ public class MainTest {
     private static final int EDGE_LENGTH = 64;
     
     private static final String IMAGES_TRAINED = "D:\\image_sets\\rbm_face_images_png\\1000_images_trained";
-    private static final String IMAGES_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_trained_incomplete";
+    private static final String IMAGES_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_trained_incomplete_gray";
     private static final String IMAGES_NOT_TRAINED = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained";
-    private static final String IMAGES_NOT_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained_incomplete";
+    private static final String IMAGES_NOT_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained_incomplete_gray";
     
-    private static final String RBM1_WEIGHTS = "Output/SimpleWeights/2014_06_25_17_00_30_faces_cuda.dat";
+    private static final String RBM1_WEIGHTS = "Output/SimpleWeights/WildFaces_64x64_rgb_1kh_2700it.dat";
     
     public static void main(String[] args){
         FloatMatrix rbm1Weights;
@@ -43,15 +43,15 @@ public class MainTest {
             Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }   
-        RBM rbm1 = new CudaRBM(rbm1Weights);
+        RBM rbm1 = new RBM(rbm1Weights);
         RBM[] rbms = new RBM[]{rbm1};
         System.out.println("RBMs loaded");
         
         try {
-            reconstructionTest(rbms, 64, new File(IMAGES_TRAINED), new File(IMAGES_TRAINED), "IMAGES_TRAINED");
-            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_TRAINED_INCOMPLETE), new File(IMAGES_TRAINED), "IMAGES_TRAINED_INCOMPLETE");
-            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_NOT_TRAINED), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED");
-            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_NOT_TRAINED_INCOMPLETE), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED_INCOMPLETE");
+            //reconstructionTest(rbms, 64, new File(IMAGES_TRAINED), new File(IMAGES_TRAINED), "IMAGES_TRAINED");
+            reconstructionTest(rbms, 64, new File(IMAGES_TRAINED_INCOMPLETE), new File(IMAGES_TRAINED), "IMAGES_TRAINED_INCOMPLETE");
+            //reconstructionTest(rbms, 64, new File(IMAGES_NOT_TRAINED), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED");
+            reconstructionTest(rbms, 64, new File(IMAGES_NOT_TRAINED_INCOMPLETE), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED_INCOMPLETE");
         } catch (IOException ex) {
             Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
         }     
@@ -81,11 +81,13 @@ public class MainTest {
         }
         
         FloatMatrix reconData = new FloatMatrix(testDataFloat);
-        for(int i = 0; i < rbms.length; ++i){
-            reconData = rbms[i].getHidden(reconData);
-        }
-        for(int i = rbms.length - 1; i >= 0; --i){
-            reconData = rbms[i].getVisible(reconData);
+        for(int j = 0; j < 5; ++j){
+            for(int i = 0; i < rbms.length; ++i){
+                reconData = rbms[i].getHidden(reconData);
+            }
+            for(int i = rbms.length - 1; i >= 0; --i){
+                reconData = rbms[i].getVisible(reconData);
+            }
         }
         
         float[][] reconDataFloat = reconData.toArray2();
