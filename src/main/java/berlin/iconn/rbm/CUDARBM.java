@@ -1,4 +1,5 @@
 package berlin.iconn.rbm;
+
 import static jcuda.driver.JCudaDriver.*;
 
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ public class CudaRBM extends RBM {
     private static CUfunction contrastiveDivergence;
 
     private static int blockDim = 512;
+
     static {
         initCudaRBM();
         sigmoid = loadFunction("sigmoid.cu", "sigmoid");
@@ -45,7 +47,7 @@ public class CudaRBM extends RBM {
         Pointer dataPointer = new Pointer();
         int visibleColumns = dataMatrix.getColumns();
         int visibleRows = dataMatrix.getRows();
-        int visibleSize =  visibleColumns * visibleRows;
+        int visibleSize = visibleColumns * visibleRows;
         JCublas.cublasAlloc(visibleSize, Sizeof.FLOAT, dataPointer);
         JCublas.cublasSetVector(visibleSize, Sizeof.FLOAT, Pointer.to(dataMatrix.data), 1, dataPointer, 1);
 
@@ -81,7 +83,7 @@ public class CudaRBM extends RBM {
 
         int hiddenColumns = hiddenMatrix.getColumns();
         int hiddenRows = hiddenMatrix.getRows();
-        int hiddenSize =  hiddenColumns * hiddenRows;
+        int hiddenSize = hiddenColumns * hiddenRows;
 
         int weightRows = super.weights.getRows();
         int weightColumns = super.weights.getColumns();
@@ -121,7 +123,7 @@ public class CudaRBM extends RBM {
         int visibleColumns = data.getColumns();
         int visibleRows = data.getRows();
 
-        int visibleSize =  visibleColumns * visibleRows;
+        int visibleSize = visibleColumns * visibleRows;
         int hiddenSize = visibleRows * super.weights.getColumns();
         int weightsSize = weightColumns * super.weights.getRows();
 
@@ -141,7 +143,7 @@ public class CudaRBM extends RBM {
         Pointer negative = new Pointer();
         JCublas.cublasAlloc(weightsSize, Sizeof.FLOAT, negative);
 
-        while(stop.isNotDone()) {
+        while (stop.isNotDone()) {
             float[] miniBatch = dataProvider.getDataWithBias().data;
             JCublas.cublasSetVector(visibleSize, Sizeof.FLOAT, Pointer.to(miniBatch), 1, visible, 1);
             updateWeights(
@@ -233,7 +235,7 @@ public class CudaRBM extends RBM {
 
     public void applyLogistic(Pointer data, int length) {
         Pointer kernelParameters = Pointer.to(Pointer.to(data), Pointer.to(new int[]{length}));
-        int  gridSize = (int) Math.ceil(length / (double) blockDim);
+        int gridSize = (int) Math.ceil(length / (double) blockDim);
         cuLaunchKernel(sigmoid,
                 gridSize, 1, 1,
                 blockDim, 1, 1,
@@ -299,31 +301,27 @@ public class CudaRBM extends RBM {
     }
 
 
-    private static String compilePtxFile(String cuFileName) throws IOException
-    {
+    private static String compilePtxFile(String cuFileName) throws IOException {
         int endIndex = cuFileName.lastIndexOf('.');
-        if (endIndex == -1)
-        {
-            endIndex = cuFileName.length()-1;
+        if (endIndex == -1) {
+            endIndex = cuFileName.length() - 1;
         }
-        String ptxFileName = cuFileName.substring(0, endIndex+1)+"ptx";
+        String ptxFileName = cuFileName.substring(0, endIndex + 1) + "ptx";
         File ptxFile = new File(ptxFileName);
-        if (ptxFile.exists())
-        {
+        if (ptxFile.exists()) {
             return ptxFileName;
         }
 
         File cuFile = new File(cuFileName);
-        if (!cuFile.exists())
-        {
+        if (!cuFile.exists()) {
             throw new IOException("Input file not found: " + cuFileName);
         }
         String modelString = "-m" + System.getProperty("sun.arch.data.model");
         String command =
-                "nvcc " + modelString + " -ptx "+
-                        cuFile.getPath()+" -o "+ptxFileName;
+                "nvcc " + modelString + " -ptx " +
+                        cuFile.getPath() + " -o " + ptxFileName;
 
-        System.out.println("Executing\n"+command);
+        System.out.println("Executing\n" + command);
         Process process = Runtime.getRuntime().exec(command);
 
         String errorMessage =
@@ -331,24 +329,20 @@ public class CudaRBM extends RBM {
         String outputMessage =
                 new String(toByteArray(process.getInputStream()));
         int exitValue = 0;
-        try
-        {
+        try {
             exitValue = process.waitFor();
-        }
-        catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException(
                     "Interrupted while waiting for nvcc output", e);
         }
 
-        if (exitValue != 0)
-        {
-            System.out.println("nvcc process exitValue "+exitValue);
-            System.out.println("errorMessage:\n"+errorMessage);
-            System.out.println("outputMessage:\n"+outputMessage);
+        if (exitValue != 0) {
+            System.out.println("nvcc process exitValue " + exitValue);
+            System.out.println("errorMessage:\n" + errorMessage);
+            System.out.println("outputMessage:\n" + outputMessage);
             throw new IOException(
-                    "Could not create .ptx file: "+errorMessage);
+                    "Could not create .ptx file: " + errorMessage);
         }
 
         System.out.println("Finished creating PTX file");
@@ -356,15 +350,12 @@ public class CudaRBM extends RBM {
     }
 
     private static byte[] toByteArray(InputStream inputStream)
-            throws IOException
-    {
+            throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte buffer[] = new byte[8192];
-        while (true)
-        {
+        while (true) {
             int read = inputStream.read(buffer);
-            if (read == -1)
-            {
+            if (read == -1) {
                 break;
             }
             baos.write(buffer, 0, read);
