@@ -142,7 +142,6 @@ public class CudaRBM extends RBM {
         JCublas.cublasAlloc(weightsSize, Sizeof.FLOAT, negative);
 
         while(stop.isNotDone()) {
-            System.out.println("next epoch");
             float[] miniBatch = dataProvider.getDataWithBias().data;
             JCublas.cublasSetVector(visibleSize, Sizeof.FLOAT, Pointer.to(miniBatch), 1, visible, 1);
             updateWeights(
