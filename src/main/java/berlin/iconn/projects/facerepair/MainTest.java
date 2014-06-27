@@ -33,7 +33,7 @@ public class MainTest {
     private static final String IMAGES_NOT_TRAINED = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained";
     private static final String IMAGES_NOT_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained_incomplete_gray";
     
-    private static final String RBM1_WEIGHTS = "Output/SimpleWeights/WildFaces_64x64_rgb_1kh_3000it.dat";
+    private static final String RBM1_WEIGHTS = "Output/SimpleWeights/WildFaces_64x64_rgb_5kh_3490it.dat";
     
     public static void main(String[] args){
         FloatMatrix rbm1Weights;
@@ -47,41 +47,56 @@ public class MainTest {
         RBM[] rbms = new RBM[]{rbm1};
         System.out.println("RBMs loaded");
         
+        DataSet[] testTrainedSet = null;
+        DataSet[] testNotTrainedSet = null;
+        
         try {
-            //reconstructionTest(rbms, 64, new File(IMAGES_TRAINED), new File(IMAGES_TRAINED), "IMAGES_TRAINED");
-            //reconstructionTest(rbms, 64, new File(IMAGES_TRAINED_INCOMPLETE), new File(IMAGES_TRAINED), "IMAGES_TRAINED_INCOMPLETE");
-            //reconstructionTest(rbms, 64, new File(IMAGES_NOT_TRAINED), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED");
-            //reconstructionTest(rbms, 64, new File(IMAGES_NOT_TRAINED_INCOMPLETE), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED_INCOMPLETE");   
-            dynamicReconstructionTest(rbms, 64, new File(IMAGES_TRAINED), "IMAGES_TRAINED_DYNAMIC");
-            dynamicReconstructionTest(rbms, 64, new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED_DYNAMIC");
+            testTrainedSet = InOutOperations.loadImages(new File(IMAGES_TRAINED), 64, false, false, 0.0f, 1.0f, true);
+            testNotTrainedSet = InOutOperations.loadImages(new File(IMAGES_NOT_TRAINED), 64, false, false, 0.0f, 1.0f, true);
+        } catch (IOException ex) {
+            Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        float[][][] preparedTrained = prepareData(testTrainedSet, 10);
+        float[][][] preparedNotTrained = prepareData(testNotTrainedSet, 10);
+        
+        
+        try {
+            //dynamicReconstructionTest(rbms, 64, preparedTrained, "IMAGES_TRAINED_DYNAMIC_1_reset", 1, true, false);
+            //dynamicReconstructionTest(rbms, 64, preparedNotTrained, "IMAGES_NOT_TRAINED_DYNAMIC_1_reset", 1, true, false);
+            //dynamicReconstructionTest(rbms, 64, preparedTrained, "IMAGES_TRAINED_DYNAMIC_10_reset_extra", 10, true, true);
+            //dynamicReconstructionTest(rbms, 64, preparedNotTrained, "IMAGES_NOT_TRAINED_DYNAMIC_10_reset_extra", 10, true, true);
+            //dynamicReconstructionTest(rbms, 64, preparedTrained, "IMAGES_TRAINED_DYNAMIC_10_reset", 10, true, false);
+            //dynamicReconstructionTest(rbms, 64, preparedNotTrained, "IMAGES_NOT_TRAINED_DYNAMIC_10_reset", 10, true, false);
+            //dynamicReconstructionTest(rbms, 64, preparedNotTrained, "IMAGES_NOT_TRAINED_DYNAMIC_100_reset", 100, true, false);
+            dynamicReconstructionTest(rbms, 64, preparedTrained, "IMAGES_TRAINED_DYNAMIC_1_reset", 1, true, false);
         } catch (IOException ex) {
             Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
         }     
     }
     
-    private static void dynamicReconstructionTest(RBM[] rbms, int edgeLength, File testData, String testName) throws IOException{
-        System.out.println("Starting Test: " + testName);
-        DataSet[] testDataSet = null;
-        
-        try {
-            testDataSet = InOutOperations.loadImages(testData, edgeLength, false, false, 0.0f, 1.0f, true);
-        } catch (IOException ex) {
-            Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        float[][] testDataFloat = new float[testDataSet.length][];
-        float[][] compareDataFloat = new float[testDataSet.length][];
+    private static float[][][] prepareData(DataSet[] data, int numOfSamples){
+        numOfSamples = Math.min(numOfSamples, data.length);
+        float[][] compareData = new float[numOfSamples][];
+        float[][] testData = new float[numOfSamples][];
 
-        for(int i = 0; i < testDataSet.length; ++i){
-            testDataFloat[i] = testDataSet[i].getData();
-            compareDataFloat[i] = new float[testDataFloat[i].length];
-            System.arraycopy(testDataFloat[i], 0, compareDataFloat[i], 0, testDataFloat[i].length);
-            float[] rgb = rgbMeanOfRegion(testDataFloat[i], 32, 64, 0, 64, 64);
-            writeRGBtoRegion(testDataFloat[i], rgb[0], rgb[1], rgb[2], 0, 32, 0, 64, 64);
+        for(int i = 0; i < numOfSamples; ++i){
+            testData[i] = data[i].getData();
+            compareData[i] = new float[testData[i].length];
+            System.arraycopy(testData[i], 0, compareData[i], 0, testData[i].length);
+            float[] rgb = rgbMeanOfRegion(testData[i], 32, 64, 0, 64, 64);
+            writeRGBtoRegion(testData[i], rgb[0], rgb[1], rgb[2], 0, 32, 0, 64, 64);
         }
         
-        FloatMatrix reconData = new FloatMatrix(testDataFloat);
-        for(int j = 0; j < 10; ++j){
+        return new float[][][]{testData, compareData};
+    }
+    
+    private static void dynamicReconstructionTest(RBM[] rbms, int edgeLength, float[][][] data, String testName, int numOfDreams, boolean resetOriginalPixels, boolean extraDream) throws IOException{
+        System.out.println("Starting Test: " + testName);
+        
+        float[][] compareDataFloat = data[1];
+        FloatMatrix reconData = new FloatMatrix(data[0]);
+        for(int j = 0; j < numOfDreams; ++j){
             for(int i = 0; i < rbms.length; ++i){
                 reconData = rbms[i].getHidden(reconData);
             }
@@ -89,21 +104,28 @@ public class MainTest {
                 reconData = rbms[i].getVisible(reconData);
             }
             
-            float[][] reconDataFloat = reconData.toArray2();
-            for(int i = 0; i < reconDataFloat.length; ++i){
-                replaceReconstructionWithOriginalPixels(reconDataFloat[i], compareDataFloat[i], 32, 64, 0, 64, 64);
+            if(resetOriginalPixels){
+                float[][] reconDataFloat = reconData.toArray2();
+                for(int i = 0; i < reconDataFloat.length; ++i){
+                    replaceReconstructionWithOriginalPixels(reconDataFloat[i], compareDataFloat[i], 32, 64, 0, 64, 64);
+                }
+                reconData = new FloatMatrix(reconDataFloat);
             }
-            reconData = new FloatMatrix(reconDataFloat);
         }
         
-        for(int i = 0; i < rbms.length; ++i){
-            reconData = rbms[i].getHidden(reconData);
-        }
-        for(int i = rbms.length - 1; i >= 0; --i){
-            reconData = rbms[i].getVisible(reconData);
+        if(extraDream){
+            for(int i = 0; i < rbms.length; ++i){
+                reconData = rbms[i].getHidden(reconData);
+            }
+            for(int i = rbms.length - 1; i >= 0; --i){
+                reconData = rbms[i].getVisible(reconData);
+            }
         }
         
         float[][] reconDataFloat = reconData.toArray2();
+        
+        System.out.println(compareDataFloat[0].length);
+        System.out.println(reconDataFloat[0].length);
         
         compareArraysForError(reconDataFloat, compareDataFloat, testName);
     }
