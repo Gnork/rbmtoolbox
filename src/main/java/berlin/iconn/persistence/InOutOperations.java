@@ -79,7 +79,7 @@ public class InOutOperations {
         return result;
     }
 
-    private static DataSet getImageData(int edgeLength, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB, File imageFile) throws IOException {
+    public static DataSet getImageData(int edgeLength, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB, File imageFile) throws IOException {
         float[] imageData;
         imageData = DataConverter.processPixelData(ImageIO.read(imageFile), edgeLength, binarize, invert, minData, maxData, isRGB);
 
@@ -87,22 +87,22 @@ public class InOutOperations {
         return new DataSet(imageData, label);
     }
 
-    public static int[][] loadSiftFlowLabels(File path) throws FileNotFoundException, IOException{
+    public static int[][] loadSiftFlowLabels(int imageSize, File path) throws FileNotFoundException, IOException{
         final File[] labelsFiles = path.listFiles((File dir, String name) -> (name.endsWith(".mat")));
         
         int[][] result = new int[labelsFiles.length][];
         
         for(int i = 0; i < labelsFiles.length; ++i){
-            result[i] = loadSiftFlowLabel(labelsFiles[i]);
+            result[i] = loadSiftFlowLabel(imageSize, labelsFiles[i]);
         }
         return result;
     }
 
-    public static int[] loadSiftFlowLabel(String filePath)  throws FileNotFoundException, IOException {
-        return loadSiftFlowLabel(new File(filePath));
+    public static int[] loadSiftFlowLabel(int imageSize, String filePath)  throws FileNotFoundException, IOException {
+        return loadSiftFlowLabel(imageSize, new File(filePath));
     }
 
-    public static int[] loadSiftFlowLabel(File file) throws FileNotFoundException, IOException{
+    public static int[] loadSiftFlowLabel(int imageSize, File file) throws FileNotFoundException, IOException{
         int n = 256;
         int[] result = new int[n * n];
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -121,17 +121,28 @@ public class InOutOperations {
         }
         
         // transpose
-        int index1, index2, temp;
+        int index1, index2, tempVar;
         for (int i = 0; i < n; i++){
             for (int j = i + 1; j < n;  j++){
                index1 = i * n + j;
                index2 = j * n + i;
-               temp = result[index1];
+               tempVar = result[index1];
                result[index1] = result[index2];
-               result[index2] = temp;
+               result[index2] = tempVar;
             }
         }
-        return result;
+
+        // resize
+        int[] resizedResult = new int[imageSize * imageSize];
+        double ratio = 256 / (double)imageSize;
+        for (int i = 0; i < imageSize; i++) {
+            for (int j = 0; j < imageSize; j++) {
+                int index = (int) ( Math.floor(i * ratio) * 256 + Math.floor(j * ratio) );
+                resizedResult[i * imageSize + j] = result[index];
+            }
+        }
+
+        return resizedResult;
     }
     
     public static String[] loadSiftFlowClasses(File file) throws FileNotFoundException, IOException{

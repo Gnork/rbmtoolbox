@@ -17,6 +17,7 @@ import berlin.iconn.rbm.learningRate.ILearningRate;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcublas.JCublas;
+import org.jblas.ranges.IntervalRange;
 
 
 public class CudaRBM extends RBM {
@@ -27,7 +28,9 @@ public class CudaRBM extends RBM {
     private static CUfunction sigmoid;
     private static CUfunction contrastiveDivergence;
 
-    private static int blockDim = 512;
+    private static final int THREAD_COUNT = 512;
+
+    private static final int CUDA_GRID_MAX = (2 << 14) - 1;
 
     static {
         initCudaRBM();
@@ -40,10 +43,7 @@ public class CudaRBM extends RBM {
         super(weights);
     }
 
-    @Override
-    public float[][] getHidden(float[][] data) {
-        FloatMatrix dataMatrix = new FullTrainingDataProvider(data).getDataWithBias();
-
+    private FloatMatrix getHiddenPart(FloatMatrix dataMatrix) {
         Pointer dataPointer = new Pointer();
         int visibleColumns = dataMatrix.getColumns();
         int visibleRows = dataMatrix.getRows();
@@ -72,13 +72,45 @@ public class CudaRBM extends RBM {
         JCublas.cublasFree(weightsPointer);
         JCublas.cublasFree(dataPointer);
         JCublas.cublasFree(hiddenPointer);
+        return removeBiasFromData(hiddenMatrix);
+    }
 
-        return removeBiasFromData(hiddenMatrix).toArray2();
+    private FloatMatrix recursiveProcessHidden(FloatMatrix data) {
+        if(data.data.length >= THREAD_COUNT * CUDA_GRID_MAX && data.getRows() > 1) {
+            int center = data.getRows() / 2;
+            return FloatMatrix.concatVertically(
+                    recursiveProcessHidden(data.get(new IntervalRange(0, center), new IntervalRange(0, data.getColumns()))) ,
+                    recursiveProcessHidden(data.get(new IntervalRange(center, data.getRows()), new IntervalRange(0, data.getColumns())))
+            );
+        } else {
+            return getHiddenPart(data);
+        }
+    }
+    @Override
+    public float[][] getHidden(float[][] data) {
+        FloatMatrix dataMatrix = new FullTrainingDataProvider(data).getDataWithBias();
+        return recursiveProcessHidden(dataMatrix).toArray2();
+    }
+
+    private FloatMatrix recursiveProcessVisible(FloatMatrix data) {
+        if(data.data.length >= THREAD_COUNT * CUDA_GRID_MAX && data.getRows() > 1) {
+            int center = data.getRows() / 2;
+            return FloatMatrix.concatVertically(
+                    recursiveProcessVisible(data.get(new IntervalRange(0, center), new IntervalRange(0, data.getColumns()))) ,
+                    recursiveProcessVisible(data.get(new IntervalRange(center, data.getRows()), new IntervalRange(0, data.getColumns())))
+            );
+        } else {
+            return getVisiblePart(data);
+        }
     }
 
     @Override
     public float[][] getVisible(float[][] data) {
         FloatMatrix hiddenMatrix = new FullTrainingDataProvider(data).getDataWithBias();
+        return recursiveProcessVisible(hiddenMatrix).toArray2();
+    }
+
+    private FloatMatrix getVisiblePart(FloatMatrix hiddenMatrix) {
         Pointer hiddenPointer = new Pointer();
 
         int hiddenColumns = hiddenMatrix.getColumns();
@@ -111,7 +143,7 @@ public class CudaRBM extends RBM {
         JCublas.cublasFree(visiblePointer);
         JCublas.cublasFree(hiddenPointer);
 
-        return removeBiasFromData(visibleMatrix).toArray2();
+        return removeBiasFromData(visibleMatrix);
     }
 
     @Override
@@ -119,6 +151,9 @@ public class CudaRBM extends RBM {
                       StoppingCondition stop, ILearningRate learningRate) {
 
         FloatMatrix data = dataProvider.getDataWithBias();
+        if(CUDA_GRID_MAX * THREAD_COUNT <= data.data.length) {
+            throw new IllegalArgumentException("data exceeds CUDA Gridsize");
+        }
         int weightColumns = super.weights.getColumns();
         int visibleColumns = data.getColumns();
         int visibleRows = data.getRows();
@@ -235,10 +270,10 @@ public class CudaRBM extends RBM {
 
     public void applyLogistic(Pointer data, int length) {
         Pointer kernelParameters = Pointer.to(Pointer.to(data), Pointer.to(new int[]{length}));
-        int gridSize = (int) Math.ceil(length / (double) blockDim);
+        int gridSize = (int) Math.ceil(length / (double) THREAD_COUNT);
         cuLaunchKernel(sigmoid,
                 gridSize, 1, 1,
-                blockDim, 1, 1,
+                THREAD_COUNT, 1, 1,
                 0,
                 null,
                 kernelParameters, null);
@@ -257,8 +292,8 @@ public class CudaRBM extends RBM {
                 Pointer.to(new float[]{learningRate}),
                 Pointer.to(new int[]{length}));
         cuLaunchKernel(contrastiveDivergence,
-                (int) Math.ceil(length / (double) blockDim), 1, 1,
-                blockDim, 1, 1,
+                (int) Math.ceil(length / (double) THREAD_COUNT), 1, 1,
+                THREAD_COUNT, 1, 1,
                 0,
                 null,
                 kernelParameters, null);

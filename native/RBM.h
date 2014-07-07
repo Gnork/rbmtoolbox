@@ -14,66 +14,67 @@
 class RBM
 {
 public:
-	RBM(float* weights, int weightsCols,
-		float* data, int dataRows, int dataCols,
-		float learningRate, int threads) :
+	RBM(float* weights, int weightRows, int weightsCols, int threads) :
 		learningRate(learningRate) 
 	{
-
 		openblas_set_num_threads(threads);
 		this->error = 1.0f;
 
 
-		this->dataLength = dataRows * dataCols;
+		this->dataLength = 1 * weightRows;
 		this->data = new float[dataLength];
 
 		std::copy(data, data + dataLength, this->data);
 
-		this->visibleRows = dataRows;
-		this->visibleCols = dataCols;
-
-		this->weightsCols = weightsCols;
-		weightsLength = visibleCols * weightsCols;
-
-		this->weights = new float[weightsLength];
-		std::copy(weights, weights + weightsLength, this->weights);
+		this->visibleRows = 1;
+		this->visibleCols = weightRows;
 
 		this->hiddenLength = visibleRows * weightsCols;
 		this->hidden = new float[hiddenLength];
 		this->visible = new float[visibleRows * visibleCols];
 
+		this->weightsCols = weightsCols;
+		weightsLength = weightRows * weightsCols;
+
+		this->weights = new float[weightsLength];
+		std::copy(weights, weights + weightsLength, this->weights);
+
 		this->positive = new float[visibleCols * weightsCols];
 		this->negative = new float[visibleCols * weightsCols];
 	}
 
-	void setData(float* data, int dataRows, int dataCols) 
+	void setData(float* data, int dataRows) 
 	{
 		delete[] this->data;
+		delete[] this->hidden;
+		delete[] this->visible;
 
-		this->dataLength = dataRows * dataCols;
+		this->dataLength = dataRows * visibleCols;
 		this->data = new float[dataLength];
 
 		std::copy(data, data + dataLength, this->data);
 
 		this->visibleRows = dataRows;
-		this->visibleCols = dataCols;
+
+		this->hiddenLength = visibleRows * weightsCols;
+		this->hidden = new float[hiddenLength];
+		this->visible = new float[visibleRows * visibleCols];
 	}
 
 	void setLearningRate(float learningRate)
 	{
-		this->learningRate;
+		this->learningRate = learningRate;
 	}
 
-	void setWeights(float* weights, int weightsCols)
+	void setWeights(float* weights, int weightsRows, int weightsCols)
 	{
-		delete[] this->weights;
-		
+		delete [] this->weights;
+		this->visibleCols = weightsRows;
 		this->weightsCols = weightsCols;
 		weightsLength = visibleCols * weightsCols;
 
 		this->weights = new float[weightsLength];
 		std::copy(weights, weights + weightsLength, this->weights);
-
 	}
 
 	float* getVisible()
@@ -81,11 +82,11 @@ public:
 		return visible;
 	}
 
-	float* runHidden(float* dataWithBiasSubMean, int dataRows)
+	float* runHidden(float* dataWithBias, int dataRows)
 	{
 		float* hidden = new float[dataRows * weightsCols];
 
-		mmul(dataWithBiasSubMean, dataRows, visibleCols, weights, weightsCols, hidden);
+		mmul(dataWithBias, dataRows, visibleCols, weights, weightsCols, hidden);
 		applyLogistic(hidden, dataRows * weightsCols);
 		return hidden;
 	}
@@ -96,7 +97,7 @@ public:
 
 		mmulTransposeB(hidden, dataRows, weightsCols, weights, visibleCols, visible);
 		applyLogistic(visible, dataRows * visibleCols);
-		return hidden;
+		return visible;
 	}
 
 	float* getWeights()
@@ -114,6 +115,15 @@ public:
 		return error;
 	}
 
+	float getError(float * data, int rows) {
+		float * hidden = runHidden(data, rows);
+		float * visible = runVisible(hidden, rows);
+		float error = updateError(rows * visibleCols, data, visible);
+		delete [] hidden;
+		delete [] visible;
+		return error;
+	}
+
 	void trainWithoutError()
 	{
 		simpleTrain();
@@ -127,13 +137,21 @@ public:
 	void trainWithError()
 	{
 		simpleTrain();
-		updateError();
+		this->error = updateError(dataLength, data, visible);
 	}
 
 	void trainBinarizedWithError()
 	{
 		binarizeHiddenTrain();
-		updateError();
+		this->error = updateError(dataLength, data, visible);
+	}
+
+	int getWeightsCols() {
+		return weightsCols;
+	}
+
+	int getWeightsRows() {
+		return visibleCols;
 	}
 
 	int getWeightsLength()
@@ -307,7 +325,7 @@ private:
 		cd(positive, negative, weights, learningRate / visibleRows, weightsLength);
 	}
 	
-	inline void updateError()
+	inline float updateError(int dataLength, float * data, float * visible)
 	{
 		float error = 0.0f;
 #pragma omp parallel for reduction(+:error)
@@ -318,7 +336,7 @@ private:
 		}
 		error = sqrtf(error / (dataLength - visibleCols));
 
-		this->error = error;
+		return error;
 		//std::cout << error << std::endl;
 	}
 

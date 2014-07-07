@@ -40,7 +40,7 @@ public class ShowSegmentation1 extends AShowSegmentation {
 
 
     @Override
-    protected void process() {
+    protected float[] process(FloatMatrix labelMatrix) {
         int[] pixels = null;
         int[] labels = null;
         float[][] hiddenImagePatches = rbmImages.getHidden(imagePatchMatrix.toArray2());
@@ -95,6 +95,7 @@ public class ShowSegmentation1 extends AShowSegmentation {
 
         resultImage.setRGB(0,0,width,height, pixels, 0, width);
         resultLabels.setRGB(0,0,width,height, getPixelsOfLabels(labels), 0, width);
+        return new float[]{1.0f, 1.0f};
     }
 
 }

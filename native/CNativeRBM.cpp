@@ -5,9 +5,10 @@
 #include "RBM.h"
 #include "berlin_iconn_rbm_NativeRBM.h"
 #include <iostream>
+#include <map>
 
-
-RBM *rbm;
+int id = 0;
+std::map<int, RBM *> rbmMap;
 
 
 /*
@@ -15,24 +16,14 @@ RBM *rbm;
 * Method:    createNativeRBM
 * Signature: ([FI[FII[FFI)V
 */
-JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_createNativeRBM
-(JNIEnv * env, jobject obj, 
-jfloatArray weights, jint weightsCols, 
-jfloatArray data, jint dataRows, jint dataCols,
-jfloatArray mean, 
-jfloat learningRate, 
-jint threads)
+JNIEXPORT jint JNICALL Java_berlin_iconn_rbm_NativeRBM_createNativeRBM
+(JNIEnv * env, jobject obj, jfloatArray weightsData, jint rows, jint cols, jint threads)
 {
-
-	float* dataBody = env->GetFloatArrayElements(data, false);
-	float* weightsBody = env->GetFloatArrayElements(weights, false);
-	rbm = new RBM(
-		weightsBody, weightsCols,
-		dataBody, dataRows, dataCols, 
-		learningRate, threads);
-	env->ReleaseFloatArrayElements(weights, weightsBody, 0);
-	env->ReleaseFloatArrayElements(data, dataBody, 0);
-
+	float* weightsBody = env->GetFloatArrayElements(weightsData, false);
+	RBM * rbm = new RBM(
+		weightsBody, rows, cols, threads);
+	env->ReleaseFloatArrayElements(weightsData, weightsBody, 0);
+	rbmMap[id++] = rbm;
 	//for (int i = 0; i < weightsCols; i++)
 	//{
 	//	for (int j = 0; j < dataCols; j++)
@@ -51,7 +42,7 @@ jint threads)
 	//	std::cout << std::endl;
 	//}
 	//std::cout << std::endl;
-
+	return id - 1;
 }
 
 /*
@@ -60,9 +51,10 @@ jint threads)
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_deleteNativeRBM
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	delete rbm;
+	delete rbmMap[id];
+	rbmMap.erase(id);
 }
 
 /*
@@ -71,9 +63,9 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_deleteNativeRBM
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithoutError
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	rbm->trainWithoutError();
+	rbmMap[id]->trainWithoutError();
 }
 
 /*
@@ -82,9 +74,9 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithoutError
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithError
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	rbm->trainWithError();
+	rbmMap[id]->trainWithError();
 }
 
 /*
@@ -93,9 +85,9 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithError
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWithoutError
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	rbm->trainBinarizedWithoutError();
+	rbmMap[id]->trainBinarizedWithoutError();
 }
 
 /*
@@ -104,9 +96,9 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWitho
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWithError
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	rbm->trainBinarizedWithError();
+	rbmMap[id]->trainBinarizedWithError();
 }
 
 /*
@@ -115,10 +107,10 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWithE
 * Signature: ()[F
 */
 JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeWeights
-(JNIEnv * env, jobject obj)
+(JNIEnv * env, jobject obj, jint id)
 {
-	jfloatArray result = env->NewFloatArray(rbm->getWeightsLength());
-	env->SetFloatArrayRegion(result, 0, rbm->getWeightsLength(), rbm->getWeights());
+	jfloatArray result = env->NewFloatArray(rbmMap[id]->getWeightsLength());
+	env->SetFloatArrayRegion(result, 0, rbmMap[id]->getWeightsLength(), rbmMap[id]->getWeights());
 
 	return result;
 }
@@ -129,9 +121,9 @@ JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeWeights
 * Signature: ()F
 */
 JNIEXPORT jfloat JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeError
-(JNIEnv * env, jobject obj) 
+(JNIEnv * env, jobject obj, jint id) 
 {
-	return rbm->getError();
+	return rbmMap[id]->getError();
 }
 
 /*
@@ -140,12 +132,12 @@ JNIEXPORT jfloat JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeError
 * Signature: ([FI)V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeWeights
-(JNIEnv * env, jobject obj, jfloatArray weights, jint weightsCols)
+(JNIEnv * env, jobject obj, jint id, jfloatArray weights, jint weightsRows, jint weightsCols)
 {
-
 	float* weightsBody = env->GetFloatArrayElements(weights, false);
-	rbm->setWeights(weightsBody, weightsCols);
+	rbmMap[id]->setWeights(weightsBody, weightsRows, weightsCols);
 	env->ReleaseFloatArrayElements(weights, weightsBody, 0);
+
 }
 
 /*
@@ -154,21 +146,74 @@ JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeWeights
 * Signature: ([FII[F)V
 */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeData
-(JNIEnv * env, jobject obj, jfloatArray data, jint dataRows, jint dataCols, jfloatArray mean)
+(JNIEnv * env, jobject obj, jint id, jfloatArray data, jint dataRows)
 {
-
 	float* dataBody = env->GetFloatArrayElements(data, false);
-	rbm->setData(dataBody, dataRows, dataCols);
+	rbmMap[id]->setData(dataBody, dataRows);
 	env->ReleaseFloatArrayElements(data, dataBody, 0);
+
+}
+
+
+JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeLearningRate
+(JNIEnv * env, jobject obj, jint id, jfloat learningRate) 
+{
+	rbmMap[id]->setLearningRate(learningRate);
 }
 
 /*
 * Class:     berlin_iconn_rbm_NativeRBM
-* Method:    setNativeLearningRate
-* Signature: (F)V
+* Method:    runHidden
+* Signature: (I[FI)[F
 */
-JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeLearningRate
-(JNIEnv * env, jobject obj, jfloat learningRate) 
-{
-	rbm->setLearningRate(learningRate);
+JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_runHidden
+(JNIEnv * env, jobject obj, jint id, jfloatArray data, jint rows) {
+
+	float * dataBody = env->GetFloatArrayElements(data, false);
+	float * hiddenBody = rbmMap[id]->runHidden(dataBody, rows);
+	env->ReleaseFloatArrayElements(data, dataBody, 0);
+
+	int hiddenLength = rows * rbmMap[id]->getWeightsCols();
+
+	jfloatArray hidden = env->NewFloatArray(hiddenLength);
+	env->SetFloatArrayRegion(hidden, 0, hiddenLength, hiddenBody);
+
+	delete[] hiddenBody;
+	return hidden;
+}
+
+/*
+* Class:     berlin_iconn_rbm_NativeRBM
+* Method:    runVisible
+* Signature: (I[FI)[F
+*/
+JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_runVisible
+(JNIEnv * env, jobject obj, jint id, jfloatArray data, jint rows) {
+
+	float * dataBody = env->GetFloatArrayElements(data, false);
+	float * visibleBody = rbmMap[id]->runVisible(dataBody, rows);
+	env->ReleaseFloatArrayElements(data, dataBody, 0);
+
+	int visibleLength = rows * rbmMap[id]->getWeightsRows();
+
+	jfloatArray visible = env->NewFloatArray(visibleLength);
+	env->SetFloatArrayRegion(visible, 0, visibleLength, visibleBody);
+	delete[] visibleBody;
+	return visible;
+
+}
+
+/*
+* Class:     berlin_iconn_rbm_NativeRBM
+* Method:    error
+* Signature: (I[FI)F
+*/
+JNIEXPORT jfloat JNICALL Java_berlin_iconn_rbm_NativeRBM_error
+(JNIEnv * env, jobject obj, jint id, jfloatArray data, jint rows) {
+
+	float * dataBody = env->GetFloatArrayElements(data, false);
+	float error = rbmMap[id]->getError(dataBody, rows);
+	env->ReleaseFloatArrayElements(data, dataBody, 0);
+
+	return error;
 }

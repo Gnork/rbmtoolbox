@@ -18,7 +18,7 @@ public class RBMEnhancer implements IRBM {
     private final LinkedList<IRBMTrainingEnhancement> traningEnhancements;
     private final LinkedList<IRBMEndTrainingEnhancement> endEnhancements;
     private final RBMInfoPackage info;
-    public final static int BASE_INTERVAL = 100;
+    public final static int BASE_INTERVAL = 1000;
 
 
     public RBMEnhancer(IRBM rbm) {
@@ -34,7 +34,6 @@ public class RBMEnhancer implements IRBM {
         boolean added = false;
 
         if (enhancement instanceof IRBMTrainingEnhancement) {
-
             traningEnhancements.add((IRBMTrainingEnhancement) enhancement);
             added = true;
         }

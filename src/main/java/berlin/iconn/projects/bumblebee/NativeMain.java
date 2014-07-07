@@ -53,7 +53,7 @@ public class NativeMain {
 
 
 
-        final NativeRBM[] rbms = new NativeRBM[parts.length];
+        final IRBM[] rbms = new IRBM[parts.length];
 
         for (int i = 0; i < parts.length; i++) {
 
@@ -62,8 +62,8 @@ public class NativeMain {
             final FullTrainingDataProvider data = new FullTrainingDataProvider(new FloatMatrix(part));
             final FloatMatrix weights = WeightsFactory.randomGaussianWeightsWithBias(part[0].length, 100, 0.01f, 1337);
             System.out.println("Start: " + i);
-            NativeRBM rbm = new NativeRBM(weights);
-            rbm.fastTrain(data, 30000, learningRate);
+            IRBM rbm = new RBM(weights);
+           // rbm.fastTrain(data, 30000, learningRate);
             System.out.println("End: " + i);
             rbms[i] = rbm;
 

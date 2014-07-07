@@ -47,7 +47,7 @@ public class Main {
         final ConstantLearningRate learningRate = new ConstantLearningRate(0.01f);
         final ATrainingDataProvider data = new BatchTrainingDataProvider(trainingData, 100);
 
-        IRBM rbm = new NativeRBM(weights);
+        IRBM rbm = new RBM(weights);
         RBMEnhancer enhancer = new RBMEnhancer(rbm);
         FeatureDataVisualization featureDataVisualization = new FeatureDataVisualization(1, 30, edgeLength, trainingData);
         new Frame(featureDataVisualization);

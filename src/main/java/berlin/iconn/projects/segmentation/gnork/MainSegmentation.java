@@ -57,7 +57,7 @@ public class MainSegmentation {
             assocWeights = InOutOperations.loadSimpleWeights(new File(assocWeightsFile));
             classes = InOutOperations.loadSiftFlowClasses(new File(siftFlowClassesPath));
             image = DataConverter.processPixelData(ImageIO.read(new File(imageFile)), edgeLength, binarize, invert, minData, maxData, isRGB);
-            label = InOutOperations.loadSiftFlowLabel(new File(labelFile));
+            label = InOutOperations.loadSiftFlowLabel(edgeLength, new File(labelFile));
         } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(MainSegmentation.class.getName()).log(Level.SEVERE, null, ex);
             return;

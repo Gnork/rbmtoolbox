@@ -50,7 +50,7 @@ public final class SimpleStackGenerator{
         
         try {
             img = DataConverter.processPixelData(ImageIO.read(new File(imageFile)), edgeLength, false, false, 0, 1, true);
-            lbl = InOutOperations.loadSiftFlowLabel(new File(labelFile));
+            lbl = InOutOperations.loadSiftFlowLabel(edgeLength, new File(labelFile));
         } catch (IOException ex) {
             Logger.getLogger(SimpleStackGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }

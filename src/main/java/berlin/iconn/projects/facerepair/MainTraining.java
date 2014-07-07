@@ -53,7 +53,7 @@ public class MainTraining {
 
         int inputSize = EDGE_LENGTH * EDGE_LENGTH * 3;
         //rbm1Weights = WeightsFactory.randomGaussianWeightsWithBias(inputSize, 6000, 0.01f);
-        RBMEnhancer enhancer = new RBMEnhancer(new NativeRBM(rbm1Weights));
+        RBMEnhancer enhancer = new RBMEnhancer(new RBM(rbm1Weights));
         
         WeightsSaver ws = new WeightsSaver(new Date(), 100, "faces_cuda");
         enhancer.addEnhancement(ws);

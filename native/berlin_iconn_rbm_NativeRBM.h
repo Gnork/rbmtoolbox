@@ -10,90 +10,114 @@ extern "C" {
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    createNativeRBM
- * Signature: ([FI[FII[FFI)V
+ * Signature: ([FIII)I
  */
-JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_createNativeRBM
-  (JNIEnv *, jobject, jfloatArray, jint, jfloatArray, jint, jint, jfloatArray, jfloat, jint);
+JNIEXPORT jint JNICALL Java_berlin_iconn_rbm_NativeRBM_createNativeRBM
+  (JNIEnv *, jobject, jfloatArray, jint, jint, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    deleteNativeRBM
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_deleteNativeRBM
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    trainNativeWithoutError
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithoutError
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    trainNativeWithError
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeWithError
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    trainNativeBinarizedWithoutError
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWithoutError
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    trainNativeBinarizedWithError
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_trainNativeBinarizedWithError
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    getNativeWeights
- * Signature: ()[F
+ * Signature: (I)[F
  */
 JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeWeights
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    getNativeError
- * Signature: ()F
+ * Signature: (I)F
  */
 JNIEXPORT jfloat JNICALL Java_berlin_iconn_rbm_NativeRBM_getNativeError
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    setNativeWeights
- * Signature: ([FI)V
+ * Signature: (I[FII)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeWeights
-  (JNIEnv *, jobject, jfloatArray, jint);
+  (JNIEnv *, jobject, jint, jfloatArray, jint, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    setNativeData
- * Signature: ([FII[F)V
+ * Signature: (I[FI)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeData
-  (JNIEnv *, jobject, jfloatArray, jint, jint, jfloatArray);
+  (JNIEnv *, jobject, jint, jfloatArray, jint);
 
 /*
  * Class:     berlin_iconn_rbm_NativeRBM
  * Method:    setNativeLearningRate
- * Signature: (F)V
+ * Signature: (IF)V
  */
 JNIEXPORT void JNICALL Java_berlin_iconn_rbm_NativeRBM_setNativeLearningRate
-  (JNIEnv *, jobject, jfloat);
+  (JNIEnv *, jobject, jint, jfloat);
+
+/*
+ * Class:     berlin_iconn_rbm_NativeRBM
+ * Method:    runHidden
+ * Signature: (I[FI)[F
+ */
+JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_runHidden
+  (JNIEnv *, jobject, jint, jfloatArray, jint);
+
+/*
+ * Class:     berlin_iconn_rbm_NativeRBM
+ * Method:    runVisible
+ * Signature: (I[FI)[F
+ */
+JNIEXPORT jfloatArray JNICALL Java_berlin_iconn_rbm_NativeRBM_runVisible
+  (JNIEnv *, jobject, jint, jfloatArray, jint);
+
+/*
+ * Class:     berlin_iconn_rbm_NativeRBM
+ * Method:    error
+ * Signature: (I[FI)F
+ */
+JNIEXPORT jfloat JNICALL Java_berlin_iconn_rbm_NativeRBM_error
+  (JNIEnv *, jobject, jint, jfloatArray, jint);
 
 #ifdef __cplusplus
 }

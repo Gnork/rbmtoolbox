@@ -51,7 +51,7 @@ public class RandomSiftFlowLoader {
             nextRandom = random.nextInt(fileLen);
             try {
                 imagesDest[i] = DataConverter.processPixelData(ImageIO.read(imageFiles[nextRandom]), edgeLength, binarize, invert, minData, maxData, isRGB);
-                labelsDest[i] = InOutOperations.loadSiftFlowLabel(labelFiles[i]);
+                labelsDest[i] = InOutOperations.loadSiftFlowLabel(edgeLength, labelFiles[i]);
             } catch (IOException ex) {
                 Logger.getLogger(RandomSiftFlowLoader.class.getName()).log(Level.SEVERE, null, ex);
             }           
@@ -84,7 +84,7 @@ public class RandomSiftFlowLoader {
         for(int i = 0; i < count; ++i){
             nextRandom = random.nextInt(fileLen);
             try {
-                labelsDest[i] = InOutOperations.loadSiftFlowLabel(labelFiles[i]);
+                labelsDest[i] = InOutOperations.loadSiftFlowLabel(edgeLength, labelFiles[i]);
             } catch (IOException ex) {
                 Logger.getLogger(RandomSiftFlowLoader.class.getName()).log(Level.SEVERE, null, ex);
             }           
