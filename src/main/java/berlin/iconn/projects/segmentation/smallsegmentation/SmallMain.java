@@ -63,30 +63,30 @@ public class SmallMain {
     private static void segmentation2(int[] labels, float[] image, Date date, int patchSize, FloatMatrix labelMatrix, FloatMatrix imagePatchMatrix) {
         FloatMatrix combinationMatrix = FloatMatrix.concatHorizontally(labelMatrix, imagePatchMatrix);
 
-        for (int i = 79; i < 80; i++) {
-            int hiddenCombinationCount = 10 * i;
-            int hiddenAssociationCount = 20;
+
+            int hiddenCombinationCount = 70;
+            int hiddenAssociationCount = 33;
             IRBM combinationRBM = new NativeCudaRBM(WeightsFactory.randomGaussianWeightsWithBias(combinationMatrix.getColumns(), hiddenCombinationCount, 0.01f));
             IRBM associationRBM = new NativeCudaRBM(WeightsFactory.randomGaussianWeightsWithBias(hiddenCombinationCount, hiddenAssociationCount, 0.01f));
-            ShowSegmentation2 showSegmentation = new ShowSegmentation2(labels, image,patchSize, classLength, pictureSize, pictureSize, combinationRBM, associationRBM);
+            ShowSegmentation2 showSegmentation = new ShowSegmentation2(labels, image, patchSize, classLength, pictureSize, pictureSize, combinationRBM, associationRBM);
+            ShowSegmentationClasses showClasses = new ShowSegmentationClasses(labels, image, patchSize, classLength, pictureSize, pictureSize, combinationRBM, associationRBM);
             Frame frame = new Frame(showSegmentation);
+            Frame frame2 = new Frame(showClasses);
             ATrainingDataProvider combinationData = new RandomBatchTrainingDataProvider(combinationMatrix, 10);
             System.out.println("Train Combination: " +  combinationRBM.getWeights().length + "  " + combinationRBM.getWeights()[0].length);
             RBMEnhancer enhancer = new RBMEnhancer(combinationRBM);
             enhancer.addEnhancement(new TrainingVisualizer(1, showSegmentation));
+            enhancer.addEnhancement(new TrainingVisualizer(1, showClasses));
             enhancer.train(combinationData, new StoppingCondition(75_000), new ConstantLearningRate(0.01f));
             try {
                 InOutOperations.saveSimpleWeights(combinationRBM.getWeights(), date, "combination");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            WindowEvent windowEvent = new WindowEvent(frame, WindowEvent.WINDOW_CLOSING);
-            Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(windowEvent);
+
 
             System.out.println("Error: " + showSegmentation.getSmallestZeroError() + " at Epoch: " + showSegmentation.getSmallestZeroErrorEpoch());
             System.out.println("MSE: " + showSegmentation.getSmallestMSE() + " at Epoch: " + showSegmentation.getSmallestZeroMSEEpoch());
-        }
 
 
 

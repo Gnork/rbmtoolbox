@@ -14,13 +14,11 @@ public class RBMInfoPackage {
     private float error;
     private float[][] weights;
     private int epochs;
-    private final LinkedList<float[][]> collectedWeights;
 
     public RBMInfoPackage(float error, float[][] weights, int epochs) {
         this.error = error;
         this.weights = weights;
         this.epochs = epochs;
-        this.collectedWeights = new LinkedList<float[][]>();
     }
 
     public float getError() {
@@ -35,9 +33,6 @@ public class RBMInfoPackage {
         return epochs;
     }
 
-    public LinkedList<float[][]> getCollectedWeights() {
-        return collectedWeights;
-    }
 
     /**
      * @param error the error to set
@@ -50,7 +45,6 @@ public class RBMInfoPackage {
      * @param weights the weights to set
      */
     public void setWeights(float[][] weights) {
-        this.collectedWeights.add(weights);
         this.weights = weights;
     }
 

@@ -29,6 +29,10 @@ public class NativeRBM  implements IRBM, AutoCloseable {
         this.id =  createNativeRBM(weights.data, weights.rows, weights.columns, Runtime.getRuntime().availableProcessors());
     }
 
+    public NativeRBM(float[][] weights) {
+        this(new FloatMatrix(weights));
+    }
+
     @Override
     public void train(ATrainingDataProvider dataProvider, StoppingCondition stop, ILearningRate learningRate) {
 

@@ -18,10 +18,15 @@ public class PatchVisualization extends JComponent implements IVisualizeObserver
     private RBMInfoPackage info;
     private final int patchSize;
     private int imageSize;
-    private final FloatMatrix patches;
-    private final IRBM rbm;
+    private final float[][] patches;
+    private final IRBM[] rbm;
+    private final int count;
+    private int state = 1;
 
-    public PatchVisualization(int patchSize, int imageSize, BufferedImage image, IRBM rbm) {
+    private float[][] recon;
+    private float error = 1.0f;
+
+    public PatchVisualization(int patchSize, int imageSize, BufferedImage image, IRBM[] rbm) {
         this.patchSize = patchSize;
         int sizeRemainder = imageSize % patchSize;
         BufferedImage img = image;
@@ -30,17 +35,15 @@ public class PatchVisualization extends JComponent implements IVisualizeObserver
             this.imageSize = (imageSize / patchSize + 1) * patchSize;
             img = resize(img, this.imageSize);
         }
-        int count = this.imageSize / patchSize;
+        this.count = this.imageSize / patchSize;
         float[][] patches = new float[count * count][];
         for (int i = 0; i < count; i++) {
             for (int j = 0; j < count; j++) {
-                BufferedImage part = img.getSubimage(i * patchSize, j * patchSize, patchSize, patchSize);
+                BufferedImage part = img.getSubimage(j * patchSize, i * patchSize, patchSize, patchSize);
                 patches[i * count + j] = DataConverter.processPixelData(part, patchSize, false, false, 0.0f, 1.0f, true);
             }
         }
-        this.patches = new FloatMatrix(patches);
-
-
+        this.patches = patches;
         this.imageSize = imageSize;
         this.rbm = rbm;
     }
@@ -57,9 +60,20 @@ public class PatchVisualization extends JComponent implements IVisualizeObserver
         return result;
     }
 
+    private BufferedImage patchesToImage(float[][] patches) {
+        BufferedImage image = new BufferedImage(imageSize,imageSize, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < count; i++) {
+            for (int j = 0; j < count; j++) {
+                int[] patchData = convertRGBPicture(patches[i * count + j]);
+                image.setRGB(j * patchSize, i * patchSize, patchSize, patchSize, patchData, 0, patchSize);
+            }
+        }
+        return image;
+    }
+
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(900, 600);
+        return new Dimension(imageSize + 300, imageSize);
     }
 
     private int[] convertGrayScalePicture(float[] values) {
@@ -100,21 +114,59 @@ public class PatchVisualization extends JComponent implements IVisualizeObserver
         Dimension size = getPreferredSize();
         Graphics g = getGraphics();
         this.info = pack;
+
+        recon = reconstruction(getState());
+        error = getError(recon);
+        System.out.println(error);
         paintImmediately(0, 0, size.width, size.height);
     }
 
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
-        Graphics2D g = (Graphics2D)graphics;
+        Graphics2D g = (Graphics2D) graphics;
         g.clearRect(0, 0, getPreferredSize().width, getPreferredSize().height);
         g.setColor(Color.black);
-        g.fillRect(0,0, getPreferredSize().width, getPreferredSize().height);
-        if(info != null) {
+        g.fillRect(0, 0, getPreferredSize().width, getPreferredSize().height);
+        if (info != null) {
             g.setColor(Color.white);
-            g.drawString("Error: " + info.getError() * 255, 650, 20);
-            g.drawString("Epochs: " + info.getEpochs(), 650, 40);
-            g.drawString("Features: " + info.getWeights()[0].length, 650, 60);
+            g.drawImage(patchesToImage(recon), 0, 0, imageSize, imageSize, 0, 0, imageSize, imageSize, null);
+
+            g.drawString("Error: " + error * 255, imageSize + 20, 20);
+            g.drawString("Epochs: " + info.getEpochs(), imageSize + 20, 40);
+            g.drawString("Features: " + info.getWeights()[0].length, imageSize + 20, 60);
         }
+    }
+
+    private float getError(float[][] recon) {
+        float sum = 0.0f;
+        for (int i = 0; i < recon.length; i++) {
+            for (int j = 0; j < recon[0].length; j++) {
+                float diff = patches[i][j] - recon[i][j];
+                sum += diff * diff;
+            }
+        }
+        return (float) Math.sqrt(sum / (recon.length * recon[0].length));
+    }
+
+    private float[][] reconstruction(int length) {
+        float[][] recon = patches;
+        for (int i = 0; i < length; i++) {
+            recon = rbm[i].getHidden(recon);
+        }
+        for (int i = length - 1; i >= 0; i--) {
+            recon = rbm[i].getVisible(recon);
+        }
+        return recon;
+    }
+
+    public void nextState() {
+        state++;
+        if(state >= rbm.length) {
+            state = rbm.length;
+        }
+    }
+    private int getState() {
+        return state;
     }
 }

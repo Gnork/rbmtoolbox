@@ -21,6 +21,9 @@ public abstract class ATrainingDataProvider {
     public ATrainingDataProvider(float[][] data) {
         this(new FloatMatrix(data));
     }
+    public ATrainingDataProvider() {
+        this(new FloatMatrix(new float[1][1]));
+    }
 
 
     public FloatMatrix getData() {

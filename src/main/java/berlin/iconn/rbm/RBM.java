@@ -63,9 +63,10 @@ public class RBM  implements IRBM {
         ForkBlas.pmmuli(visible.transpose(), hidden, negativeAssociations);
 //        Main.print(negativeAssociations.toArray2(), "negative");
 
-        // contrastive divergence on weights // update
-        weights.addi((positiveAssociations.sub(negativeAssociations))
-                .mul(learningRate.getRate() / (float) dataProvider.getData().getRows()));
+        // contrastive divergence on weights //
+        FloatMatrix cd = positiveAssociations.sub(negativeAssociations);
+        cd.muli(learningRate.getRate() / (float) dataProvider.getData().getRows());
+        weights.addi(cd);
 
     }
 

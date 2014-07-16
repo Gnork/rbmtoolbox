@@ -81,11 +81,15 @@ public class InOutOperations {
 
     public static DataSet getImageData(int edgeLength, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB, File imageFile) throws IOException {
         float[] imageData;
-        imageData = DataConverter.processPixelData(ImageIO.read(imageFile), edgeLength, binarize, invert, minData, maxData, isRGB);
+        BufferedImage img = ImageIO.read(imageFile);
+        imageData = DataConverter.processPixelData(img, edgeLength, binarize, invert, minData, maxData, isRGB);
 
         String label = imageFile.getName().split("_")[0];
         return new DataSet(imageData, label);
     }
+
+
+
 
     public static int[][] loadSiftFlowLabels(int imageSize, File path) throws FileNotFoundException, IOException{
         final File[] labelsFiles = path.listFiles((File dir, String name) -> (name.endsWith(".mat")));
@@ -199,5 +203,9 @@ public class InOutOperations {
         if(!file.isDirectory()){
             FileUtils.forceMkdir(file);
         }           
+    }
+
+    public static File[] getImageFiles(String filePath) {
+        return getImageFiles(new File(filePath));
     }
 }

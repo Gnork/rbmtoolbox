@@ -14,6 +14,7 @@ public class CascadeDataProvider extends ATrainingDataProvider {
         super(provider.getData());
         this.rbm = rbm;
         this.provider = provider;
+        changeDataAtTraining();
     }
 
     @Override

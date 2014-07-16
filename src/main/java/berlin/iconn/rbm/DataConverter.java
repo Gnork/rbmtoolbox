@@ -99,7 +99,7 @@ public class DataConverter {
         return processPixelIntensityData(data, edgeLength, binarize, invert, minData, maxData);
     }
 
-    private static BufferedImage pixelRGBDataToImage(float[] data, float minData) {
+    public static BufferedImage pixelRGBDataToImage(float[] data, float minData) {
         int edgeLength = (int) Math.sqrt(data.length / 3);
         BufferedImage image = new BufferedImage(edgeLength, edgeLength, BufferedImage.TYPE_INT_RGB);
 
@@ -139,6 +139,7 @@ public class DataConverter {
 
         return image;
     }
+
 
     private static BufferedImage pixelIntensityDataToImageConvolution(float[] data, float minData) {
         int edgeLength = (int) Math.sqrt(data.length);

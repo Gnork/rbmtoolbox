@@ -55,20 +55,40 @@ public class RandomPoolPatchDataProvider extends ATrainingDataProvider {
     }
 
     protected float[][] getMiniBatch(float[][] minibatch) {
+        getFromData(minibatch);
+        return minibatch;
+    }
+
+
+
+    private void getRandom(float[][] minibatch) {
+
+        for (int i = 0; i < minibatch.length; i++) {
+            minibatch[i] = new float[patchSize * patchSize * 3];
+            for (int j = 0; j < minibatch[i].length; j++) {
+                minibatch[i][j] = (RANDOM.nextFloat() < 0.5f ? -0.3f : 0.3f) * RANDOM.nextFloat() + 0.5f;
+            }
+        }
+    }
+
+    private void getFromData(float[][] minibatch) {
         int patchSizeRGB = patchSize * 3;
         for (int i = 0; i < miniBatchCount; i++) {
-            int x = RANDOM.nextInt(imageSize - patchSize + 1) * 3;
+            int x = RANDOM.nextInt(imageSize - patchSize + 1);
             int y = RANDOM.nextInt(imageSize - patchSize + 1);
             float[] pic = currentData[RANDOM.nextInt(currentData.length)];
             float[] patch = new float[patchSize * patchSizeRGB];
             for (int j = 0; j < patchSize; j++) {
-                for (int k = 0; k < patchSizeRGB; k++) {
-                    patch[j * patchSizeRGB + k] = pic[((y + j) * imageSize + x + k)];
+                for (int k = 0; k < patchSize; k++) {
+                    int imagePos = ((y + j) * imageSize + x + k) * 3;
+                    int patchPos = (j * patchSize + k) * 3;
+                    patch[patchPos] = pic[imagePos];
+                    patch[patchPos + 1] = pic[imagePos + 1];
+                    patch[patchPos + 2] = pic[imagePos + 2];
                 }
             }
             minibatch[i] = patch;
         }
-        return minibatch;
     }
 
 }

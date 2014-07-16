@@ -43,6 +43,10 @@ public class CudaRBM extends RBM {
         super(weights);
     }
 
+    public CudaRBM(float[][] weights) {
+        super(new FloatMatrix(weights));
+    }
+
     private FloatMatrix getHiddenPart(FloatMatrix dataMatrix) {
         Pointer dataPointer = new Pointer();
         int visibleColumns = dataMatrix.getColumns();

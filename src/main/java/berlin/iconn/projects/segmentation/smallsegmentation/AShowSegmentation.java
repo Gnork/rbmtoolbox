@@ -27,7 +27,7 @@ public abstract class AShowSegmentation extends JComponent implements IVisualize
     protected final BufferedImage resultLabels;
     protected final int classLength;
     protected final int patchSize;
-    private final Dimension dim;
+    protected Dimension dim;
     protected float mse = 1.0f;
     protected float labelError = 1.0f;
     private float mseZero = 1.0f;
@@ -37,7 +37,7 @@ public abstract class AShowSegmentation extends JComponent implements IVisualize
     private float smallestZeroError = 300;
     private float smallestMSE = 300;
     private final int[] labelImage;
-    private RBMInfoPackage info = null;
+    protected RBMInfoPackage info = null;
 
     public AShowSegmentation(int[] labelimage, float[] image, int patchSize, int classLength, int width, int height) {
         this.patchSize = patchSize;
